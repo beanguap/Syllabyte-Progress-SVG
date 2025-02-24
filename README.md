@@ -1,31 +1,33 @@
-My Brain Progress
+# My Brain Progress
 
-A React + TypeScript application featuring a custom “BrainProgress” component with an animated “unwinding” effect using an SVG brain logo.
-Table of Contents
+A React + TypeScript application featuring a custom **BrainProgress** component with an animated "unwinding" effect using an SVG brain logo.
 
-    Overview
-    Features
-    Project Structure
-    Getting Started
-    Usage
-    Scripts
-    Customization
-    Documentation
-    License
+## Table of Contents
 
-Overview
+- [Overview](#overview)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Usage](#usage)
+- [Scripts](#scripts)
+- [Customization](#customization)
+- [Documentation](#documentation)
+- [License](#license)
 
-My Brain Progress is built with Vite to take advantage of fast, modern development tooling. The core highlight of this project is the BrainProgress component, which displays a visually appealing loading/unwinding animation on an SVG brain logo to indicate progress.
-Features
+## Overview
 
-    SVG-Based Animation: An unwinding animation that updates dynamically based on progress percentage.
-    TypeScript Support: Strongly typed components for reliability and maintainability.
-    Responsive Design: The component can adapt to various screen sizes and dimensions.
-    Multiple Progress Input Options: Accepts direct percentage or calculates progress from value/maxValue.
-    Customizable Styles: Easily change colors, stroke widths, or background.
-    Accessibility: Proper ARIA labels and attributes.
+My Brain Progress is built with [Vite](https://vitejs.dev/) to take advantage of fast, modern development tooling. The core highlight of this project is the **BrainProgress** component, which displays a visually appealing loading/unwinding animation on an SVG brain logo to indicate progress.
 
-Project Structure
+## Features
+
+- **SVG-Based Animation:** An unwinding animation that updates dynamically based on progress percentage.
+- **TypeScript Support:** Strongly typed components for reliability and maintainability.
+- **Responsive Design:** The component adapts to various screen sizes and dimensions.
+- **Multiple Progress Input Options:** Accepts a direct percentage or calculates progress as `(value / maxValue) * 100`.
+- **Customizable Styles:** Easily change colors, stroke widths, or backgrounds.
+- **Accessibility:** Provides proper ARIA labels and attributes.
+
+## Project Structure
 
 my-brain-progress/
 ├── public/
@@ -53,6 +55,7 @@ my-brain-progress/
 ├── tsconfig.json
 └── vite.config.ts
 
+
     public/: Static files and the main HTML entry point.
     src/: Core application code, assets, and documentation.
     components/: Reusable React components, including the BrainProgress component.
@@ -60,7 +63,7 @@ my-brain-progress/
     styles/: Custom stylesheets for your components.
     App.tsx / main.tsx: Entry points for your React application.
 
-Getting Started
+## Getting Started
 
     Install Dependencies
 
@@ -73,7 +76,7 @@ Run Development Server
     Open in Browser
     Once the server starts, open http://localhost:5173 (or the displayed URL) to see the app.
 
-Usage
+## Usage
 
 Inside your App.tsx or any other component:
 
@@ -97,7 +100,7 @@ function App() {
 
 export default App;
 
-Scripts
+## Scripts
 
 In your project root, you have access to these NPM scripts:
 
@@ -105,7 +108,7 @@ In your project root, you have access to these NPM scripts:
     npm run build: Builds the application for production.
     npm run preview: Locally previews the production build.
 
-Customization
+## Customization
 
     BrainProgress Props
         totalPercent?: number; – Directly set the progress percentage.
@@ -117,14 +120,15 @@ Customization
         animationSpeed?: number; – Duration (in seconds) of the progress animation.
 
 Feel free to modify the SVG paths and animations to achieve the exact “unwinding” effect shown in the storyboard.
-Documentation
+
+## Documentation
 
 For further details, refer to the following documents in the src/docs/ folder:
 
     SVG Brain Logo Animation.docx – Detailed functional and visual requirements.
     SVG Brain Storyboard Unwind.pdf – Visual storyboard of the “unwinding” animation.
 
-License
+## License
 
 
 
