@@ -1,50 +1,132 @@
-# React + TypeScript + Vite
+My Brain Progress
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + TypeScript application featuring a custom “BrainProgress” component with an animated “unwinding” effect using an SVG brain logo.
+Table of Contents
 
-Currently, two official plugins are available:
+    Overview
+    Features
+    Project Structure
+    Getting Started
+    Usage
+    Scripts
+    Customization
+    Documentation
+    License
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Overview
 
-## Expanding the ESLint configuration
+My Brain Progress is built with Vite to take advantage of fast, modern development tooling. The core highlight of this project is the BrainProgress component, which displays a visually appealing loading/unwinding animation on an SVG brain logo to indicate progress.
+Features
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+    SVG-Based Animation: An unwinding animation that updates dynamically based on progress percentage.
+    TypeScript Support: Strongly typed components for reliability and maintainability.
+    Responsive Design: The component can adapt to various screen sizes and dimensions.
+    Multiple Progress Input Options: Accepts direct percentage or calculates progress from value/maxValue.
+    Customizable Styles: Easily change colors, stroke widths, or background.
+    Accessibility: Proper ARIA labels and attributes.
 
-- Configure the top-level `parserOptions` property like this:
+Project Structure
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+my-brain-progress/
+├── public/
+│   └── index.html
+├── src/
+│   ├── assets/
+│   │   └── SVGBrainLogo.svg
+│   ├── components/
+│   │   └── BrainProgress.tsx
+│   ├── docs/
+│   │   ├── SVG Brain Logo Animation.docx
+│   │   └── SVG Brain Storyboard Unwind.pdf
+│   ├── styles/
+│   │   └── BrainProgress.css
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── vite-env.d.ts
+├── .gitignore
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── README.md
+├── tsconfig.app.json
+├── tsconfig.json
+└── vite.config.ts
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+    public/: Static files and the main HTML entry point.
+    src/: Core application code, assets, and documentation.
+    components/: Reusable React components, including the BrainProgress component.
+    docs/: Project documentation files (storyboards, proposals, etc.).
+    styles/: Custom stylesheets for your components.
+    App.tsx / main.tsx: Entry points for your React application.
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+Getting Started
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+    Install Dependencies
+
+npm install
+
+Run Development Server
+
+    npm run dev
+
+    Open in Browser
+    Once the server starts, open http://localhost:5173 (or the displayed URL) to see the app.
+
+Usage
+
+Inside your App.tsx or any other component:
+
+import React from 'react';
+import BrainProgress from './components/BrainProgress';
+
+function App() {
+  return (
+    <div>
+      <h1>Brain Progress Demo</h1>
+      <BrainProgress
+        value={50}
+        maxValue={100}
+        showLabel
+        customColors={{ primary: '#3498db', secondary: '#2ecc71' }}
+        animationSpeed={2}
+      />
+    </div>
+  );
+}
+
+export default App;
+
+Scripts
+
+In your project root, you have access to these NPM scripts:
+
+    npm run dev: Starts the development server.
+    npm run build: Builds the application for production.
+    npm run preview: Locally previews the production build.
+
+Customization
+
+    BrainProgress Props
+        totalPercent?: number; – Directly set the progress percentage.
+        value?: number; maxValue?: number; – Calculate progress as (value / maxValue) * 100.
+        backgroundColor?: string; – Background track color.
+        showLabel?: boolean; – Toggles display of the percentage label.
+        width?: number; height?: number; – Dimensions of the SVG container.
+        customColors?: { primary?: string; secondary?: string }; – Color theme for the progress stroke and label.
+        animationSpeed?: number; – Duration (in seconds) of the progress animation.
+
+Feel free to modify the SVG paths and animations to achieve the exact “unwinding” effect shown in the storyboard.
+Documentation
+
+For further details, refer to the following documents in the src/docs/ folder:
+
+    SVG Brain Logo Animation.docx – Detailed functional and visual requirements.
+    SVG Brain Storyboard Unwind.pdf – Visual storyboard of the “unwinding” animation.
+
+License
+
+
+
+Happy Coding!
+For any questions or suggestions, please open an issue or submit a pull request.
