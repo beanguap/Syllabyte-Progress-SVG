@@ -1,4 +1,4 @@
-# My Brain Progress
+# Syllabyte-Progress-SVG
 
 A React + TypeScript application featuring a custom **BrainProgress** component that displays an animated "unwinding" effect using an SVG brain logo.
 
@@ -17,7 +17,7 @@ A React + TypeScript application featuring a custom **BrainProgress** component 
 
 ## Overview
 
-My Brain Progress leverages [Vite](https://vitejs.dev/) for modern development tooling. The core component, **BrainProgress**, provides a visually appealing progress indicator using an animated SVG brain that "unwinds" as progress increases.
+Syllabyte-Progress-SVG leverages [Vite](https://vitejs.dev/) for modern development tooling. The core component, **BrainProgress**, provides a visually appealing progress indicator using an animated SVG brain that "unwinds" as progress increases.
 
 ## Features
 
@@ -167,6 +167,8 @@ Additional documentation in `src/docs/`:
 - `SVG Brain Logo Animation.docx` - Functional requirements
 - `SVG Brain Storyboard Unwind.pdf` - Animation storyboard
 
-## License
+Developer:
+
+https://x.com/Pybeancoder
 
 MIT License. See [LICENSE](LICENSE) for details.
