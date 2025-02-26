@@ -20,15 +20,15 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 4px;
-  fill: none;
+  fill: url(#brain-gradient); /* Enable gradient fill */
   transform-origin: center;
   /* Enhanced animation properties */
   stroke-dasharray: 0;
   stroke-dashoffset: 0;
   /* Will be overridden by inline styles for animation */
-  transition-property: stroke-dashoffset, opacity;
+  transition-property: stroke-dashoffset, opacity, fill-opacity;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: stroke-dashoffset, opacity;
+  will-change: stroke-dashoffset, opacity, fill-opacity;
 }
 
 /* Stem path styling (path-1) - ensure it's visible first */
@@ -147,4 +147,16 @@
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* Add fill animation keyframes */
+@keyframes fillIn {
+  from {
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length);
+  }
+  to {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
 }
