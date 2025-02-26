@@ -111,10 +111,10 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
           `;
           
           // Animate stroke and fill
-          setTimeout(() => {
+          requestAnimationFrame(() => {
             pathElement.style.strokeDashoffset = '0px';
             pathElement.style.fillOpacity = '1';
-          }, 10);
+          });
         }
       });
     }
