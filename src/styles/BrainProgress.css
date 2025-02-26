@@ -1,0 +1,76 @@
+/* Base container styling */
+.brain-progress-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+}
+
+/* SVG base styling */
+.brain-progress-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible; /* Allow paths to extend beyond SVG boundaries */
+}
+
+/* Brain path styling */
+.brain-path {
+  opacity: 0; /* Start hidden */
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4px;
+  fill: none;
+  transform-origin: center;
+  /* Initial animation state */
+  stroke-dasharray: 0;
+  stroke-dashoffset: 0;
+  /* Smoother animations */
+  will-change: stroke-dashoffset, opacity;
+}
+
+/* When path is ready to be animated */
+.brain-path.active {
+  opacity: 1;
+}
+
+/* Enhance hover effect for interactive contexts */
+.brain-progress-container:hover .brain-path {
+  /* Subtle glow effect on hover */
+  filter: drop-shadow(0 0 2px rgba(6, 201, 161, 0.3));
+}
+
+/* Ensure accessibility */
+.brain-progress-container:focus-visible {
+  outline: 3px solid #007afc;
+  outline-offset: 2px;
+  border-radius: 5px;
+}
+
+/* Style for percentage label container */
+.brain-progress-label {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  /* Smooth transitions for label updates */
+  transition: transform 0.3s ease;
+}
+
+/* Add some responsive styling */
+@media (max-width: 480px) {
+  .brain-progress-label {
+    font-size: 1rem;
+    width: 60px;
+    height: 60px;
+  }
+}
