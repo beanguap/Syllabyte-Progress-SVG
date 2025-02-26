@@ -40,19 +40,14 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
   // Map each progress step to the paths that should be visible
   // The order is important - it determines the drawing sequence
   const pathIds = useMemo(() => {
-    // Map progress steps to path visibility based on reference images
     const pathSteps = {
       0: [],
-      // At 25% - Only shows the stem
-      25: ["path-1"], 
-      // At 50% - Shows stem + lower neural paths 
-      50: ["path-1", "path-6"], 
-      // At 75% - Shows more neural paths
-      75: ["path-1", "path-6", "path-5", "path-3", "path-2"], 
-      // At 100% - Shows complete brain
-      100: ["path-1", "path-6", "path-5", "path-3", "path-2", "path-4", "path-7", "path-8"] 
+      25: ["path-1"],
+      // Include path-9 and path-10 at 50% progress
+      50: ["path-1", "path-6", "path-9", "path-10"],
+      75: ["path-1", "path-6", "path-9", "path-10", "path-5", "path-3", "path-2"],
+      100: ["path-1", "path-6", "path-9", "path-10", "path-5", "path-3", "path-2", "path-4", "path-7", "path-8"]
     };
-    
     return pathSteps[steppedProgress] || [];
   }, [steppedProgress]);
 
@@ -216,6 +211,30 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
         <path 
           id="path-8"
           d="M841.09,345.25c-10.63,0-20.89-5.73-26.22-15.72-7.78-14.34-2.53-32.29,11.78-40.17,14.36-7.92,32.42-2.68,40.34,11.68.14.25.37.67.49.92,7.5,14.58,1.76,32.49-12.82,39.99-4.35,2.23-8.99,3.29-13.56,3.29Z"
+          fill="url(#brain-gradient)"
+          stroke="url(#brain-gradient)"
+          strokeWidth="4"
+          strokeLinecap="round"
+          fillOpacity="0"
+          className="brain-path"
+        />
+
+        {/* Add the swoosh path */}
+        <path 
+          id="path-9"
+          d="M308.6,720.68c-4.03,0-8.11-.82-12.03-2.56-45.96-20.4-69.97-57.7-67.6-105.03,7.09-141.81,255.17-162.4,361.5-164.67,16.36-.43,29.97,12.66,30.32,29.05.35,16.4-12.66,29.97-29.05,30.32-84.34,1.8-160.4,12.9-214.15,31.24-39.66,13.53-87.34,37.88-89.3,77.02-.76,15.22,2.23,34.4,32.38,47.78,14.99,6.65,21.75,24.2,15.09,39.19-4.91,11.07-15.77,17.65-27.16,17.65Z"
+          fill="url(#brain-gradient)"
+          stroke="url(#brain-gradient)"
+          strokeWidth="4"
+          strokeLinecap="round"
+          fillOpacity="0"
+          className="brain-path"
+        />
+
+        {/* Add the dot path */}
+        <path 
+          id="path-10"
+          d="M425.54,697.51c-3-16.12-18.42-26.77-34.55-23.78l4.84,29.3-4.88-29.29c-16.18,2.7-27.1,18-24.41,34.17,2.42,14.52,15,24.82,29.26,24.82,1.62,0,3.26-.13,4.92-.41l1-.18c16.12-3,26.84-18.51,23.83-34.64Z"
           fill="url(#brain-gradient)"
           stroke="url(#brain-gradient)"
           strokeWidth="4"

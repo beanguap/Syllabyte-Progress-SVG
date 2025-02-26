@@ -42,7 +42,9 @@
 }
 
 [data-progress="50"] #path-1,
-[data-progress="50"] #path-6 {
+[data-progress="50"] #path-6,
+[data-progress="50"] #path-9,
+[data-progress="50"] #path-10 {
   opacity: 1;
 }
 
