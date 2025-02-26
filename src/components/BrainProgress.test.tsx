@@ -1,32 +1,60 @@
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { render, screen, act } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import BrainProgress from './BrainProgress';
 
 describe('BrainProgress', () => {
-  it('renders with default props', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  });
+
+  it('renders with default props', async () => {
     render(<BrainProgress />);
     const progressbar = screen.getByRole('progressbar');
+    
+    // Advance timers to complete animations
+    await act(async () => {
+      vi.advanceTimersByTime(1000);
+    });
+    
     expect(progressbar).toBeInTheDocument();
     expect(progressbar).toHaveAttribute('aria-valuenow', '0');
   });
 
-  it('displays correct progress value', () => {
+  it('displays correct progress value', async () => {
     render(<BrainProgress value={75} maxValue={100} showLabel={true} />);
+    
+    await act(async () => {
+      vi.advanceTimersByTime(1000);
+    });
+    
     const progressbar = screen.getByRole('progressbar');
     expect(progressbar).toHaveAttribute('aria-valuenow', '75');
     expect(screen.getByText('75%')).toBeInTheDocument();
   });
 
-  it('clamps progress value between 0 and 100', () => {
+  it('clamps progress value between 0 and 100', async () => {
     render(<BrainProgress value={150} maxValue={100} />);
+    
+    await act(async () => {
+      vi.advanceTimersByTime(1000);
+    });
+    
     const progressbar = screen.getByRole('progressbar');
     expect(progressbar).toHaveAttribute('aria-valuenow', '100');
   });
 
-  it('shows correct paths based on progress', () => {
+  it('shows correct paths based on progress', async () => {
     const { container } = render(<BrainProgress value={50} maxValue={100} />);
     
-    // At 50%, paths 1 and 6 should be visible
+    await act(async () => {
+      vi.advanceTimersByTime(1000);
+    });
+    
     const path1 = container.querySelector('#path-1');
     const path6 = container.querySelector('#path-6');
     
@@ -34,7 +62,7 @@ describe('BrainProgress', () => {
     expect(path6).toHaveStyle({ opacity: '1' });
   });
 
-  it('applies custom colors', () => {
+  it('applies custom colors', async () => {
     const customColors = {
       primary: '#ff0000',
       secondary: '#0000ff'
@@ -47,6 +75,10 @@ describe('BrainProgress', () => {
         customColors={customColors}
       />
     );
+
+    await act(async () => {
+      vi.advanceTimersByTime(1000);
+    });
 
     const gradient = container.querySelector('#brain-gradient');
     const stops = gradient?.querySelectorAll('stop');
