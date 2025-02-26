@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import '../styles/BrainProgress.css'; // Fixed relative import path
+import '../styles/BrainProgress.css'; 
 
 // Define the component props interface
 interface BrainProgressProps {
@@ -28,13 +28,22 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
   customColors = { primary: '#06c9a1', secondary: '#007afc' },
   animationSpeed = 1
 }) => {
-  // Calculate progress and clamp to [0,100]
-  const progress = useMemo(() => {
+  // Calculate raw progress and clamp to [0,100]
+  const rawProgress = useMemo(() => {
     if (value !== undefined && maxValue && maxValue > 0) {
       return Math.min(100, Math.max(0, (value / maxValue) * 100));
     }
     return totalPercent !== undefined ? Math.min(100, Math.max(0, totalPercent)) : 0;
   }, [totalPercent, value, maxValue]);
+  
+  // Convert raw progress to stepped progress (0, 25, 50, 75, 100)
+  const steppedProgress = useMemo(() => {
+    if (rawProgress >= 100) return 100;
+    if (rawProgress >= 75) return 75;
+    if (rawProgress >= 50) return 50;
+    if (rawProgress >= 25) return 25;
+    return 0;
+  }, [rawProgress]);
 
   const [isInitialRender, setIsInitialRender] = useState<boolean>(true);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -43,49 +52,69 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
     if (isInitialRender) setIsInitialRender(false);
   }, []);
 
-  // New ordering: start with stem (assumed as path-9) then the remainder.
-  // Adjust ordering as needed to match the storyboard PDF.
-  const pathIds = [
-    "path-9", // Stem: animates first
-    "path-1",
-    "path-2",
-    "path-3",
-    "path-4",
-    "path-5",
-    "path-6",
-    "path-7",
-    "path-8"
-  ];
-
-  const getPathLength = (pathElement: SVGPathElement): number => pathElement.getTotalLength();
-
-  const getPathStyles = (pathElement: SVGPathElement, index: number) => {
-    if (isInitialRender || !pathElement) return {};
-    const pathLength = getPathLength(pathElement);
-    const delay = index * 0.1 * animationSpeed; // staggered delay
-    const duration = animationSpeed;
-    const dashoffset = pathLength - (pathLength * progress / 100);
-    return {
-      strokeDasharray: `${pathLength}px`,
-      strokeDashoffset: `${dashoffset}px`,
-      transition: `stroke-dashoffset ${duration}s ease-in-out ${delay}s`,
-      opacity: 1
+  // Map each progress step to the paths that should be visible
+  // The order is important - it determines the drawing sequence
+  const pathIds = useMemo(() => {
+    // Map progress steps to path visibility based on reference images
+    const pathSteps = {
+      0: [],
+      // At 25% - Only shows the stem
+      25: ["path-1"], 
+      // At 50% - Shows stem + lower neural paths 
+      50: ["path-1", "path-6"], 
+      // At 75% - Shows more neural paths
+      75: ["path-1", "path-6", "path-5", "path-3", "path-2"], 
+      // At 100% - Shows complete brain
+      100: ["path-1", "path-6", "path-5", "path-3", "path-2", "path-4", "path-7", "path-8"] 
     };
-  };
+    
+    return pathSteps[steppedProgress] || [];
+  }, [steppedProgress]);
 
   useEffect(() => {
     if (!isInitialRender && svgRef.current) {
-      pathIds.forEach((id, index) => {
-        const pathElement = svgRef.current.querySelector(`#${id}`) as SVGPathElement;
+      // Get all brain paths
+      const allPaths = Array.from(svgRef.current.querySelectorAll('.brain-path'));
+      
+      // First reset all paths to hidden
+      allPaths.forEach((pathElement) => {
+        const path = pathElement as SVGPathElement;
+        const pathLength = path.getTotalLength();
+        
+        // Hide all paths initially
+        path.style.strokeDasharray = `${pathLength}px`;
+        path.style.strokeDashoffset = `${pathLength}px`; // Hidden - offset equals length
+        path.style.opacity = '0';
+      });
+      
+      // Then animate the visible paths
+      pathIds.forEach((pathId, idx) => {
+        const pathElement = svgRef.current?.querySelector(`#${pathId}`) as SVGPathElement;
+        
         if (pathElement) {
-          const styles = getPathStyles(pathElement, index);
-          Object.entries(styles).forEach(([key, value]) => {
-            pathElement.style[key as any] = value as string;
-          });
+          const pathLength = pathElement.getTotalLength();
+          const delay = idx * 0.2 * animationSpeed; // Stagger animation
+          
+          // Make visible
+          pathElement.style.opacity = '1';
+          
+          // Apply drawing animation
+          pathElement.style.transition = `
+            stroke-dashoffset ${animationSpeed}s ease-in-out ${delay}s,
+            opacity 0.3s ease ${delay}s
+          `;
+          
+          // Animate stroke from hidden to visible (dashoffset from pathLength to 0)
+          setTimeout(() => {
+            pathElement.style.strokeDashoffset = '0px';
+          }, 10); // Small timeout to ensure transition applies
         }
       });
     }
-  }, [progress, isInitialRender, animationSpeed]);
+  }, [pathIds, isInitialRender, animationSpeed]);
+  
+  // Display original raw progress for accuracy in the label and ARIA attributes
+  const displayProgress = Math.round(rawProgress);
 
   return (
     <div 
@@ -94,7 +123,7 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-valuenow={progress}
+      aria-valuenow={displayProgress}
     >
       <svg 
         ref={svgRef}
@@ -200,7 +229,7 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
               textAnchor="middle" 
               dominantBaseline="middle"
             >
-              {Math.round(progress)}%
+              {displayProgress}%
             </text>
           </g>
         )}
