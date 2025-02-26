@@ -14,7 +14,7 @@
   overflow: visible; /* Allow paths to extend beyond SVG boundaries */
 }
 
-/* Brain path styling */
+/* Brain path base styling */
 .brain-path {
   opacity: 0; /* Start hidden */
   stroke-linecap: round;
@@ -22,32 +22,32 @@
   stroke-width: 4px;
   fill: none;
   transform-origin: center;
-  /* Initial animation state */
+  /* Prepare for animated drawing */
   stroke-dasharray: 0;
   stroke-dashoffset: 0;
-  /* Smoother animations */
+  /* Smooth transitions */
+  transition: stroke-dashoffset 1s ease-in-out, opacity 0.3s ease;
   will-change: stroke-dashoffset, opacity;
 }
 
-/* When path is ready to be animated */
+/* Class applied (via inline styles or added dynamically) to reveal the path */
 .brain-path.active {
   opacity: 1;
 }
 
-/* Enhance hover effect for interactive contexts */
+/* On hover, add a subtle glow for interactive feedback */
 .brain-progress-container:hover .brain-path {
-  /* Subtle glow effect on hover */
   filter: drop-shadow(0 0 2px rgba(6, 201, 161, 0.3));
 }
 
-/* Ensure accessibility */
+/* Accessibility focus style */
 .brain-progress-container:focus-visible {
   outline: 3px solid #007afc;
   outline-offset: 2px;
   border-radius: 5px;
 }
 
-/* Style for percentage label container */
+/* Style for the percentage label container */
 .brain-progress-label {
   position: absolute;
   display: flex;
@@ -62,15 +62,32 @@
   color: #333;
   text-align: center;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  /* Smooth transitions for label updates */
   transition: transform 0.3s ease;
 }
 
-/* Add some responsive styling */
+/* Responsive adjustments for percentage label */
 @media (max-width: 480px) {
   .brain-progress-label {
     font-size: 1rem;
     width: 60px;
     height: 60px;
   }
+}
+
+/* Optional pulse animation when progress reaches 100% */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Apply pulse animation on the label when fully complete */
+.brain-progress-container[aria-valuenow="100"] .brain-progress-label {
+  animation: pulse 1s ease-in-out;
 }
