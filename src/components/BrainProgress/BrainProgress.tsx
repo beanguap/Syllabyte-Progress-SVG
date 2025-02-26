@@ -1,21 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import '../styles/BrainProgress.css'; 
-
-// Define the component props interface
-interface BrainProgressProps {
-  totalPercent?: number;
-  value?: number;
-  maxValue?: number;
-  backgroundColor?: string;
-  showLabel?: boolean;
-  width?: number;
-  height?: number;
-  customColors?: {
-    primary?: string;
-    secondary?: string;
-  };
-  animationSpeed?: number;
-}
+import { BrainProgressProps } from './types';
+import './BrainProgress.css'; 
 
 const BrainProgress: React.FC<BrainProgressProps> = ({
   totalPercent,
@@ -49,8 +34,8 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
-    if (isInitialRender) setIsInitialRender(false);
-  }, []);
+    setIsInitialRender(false);
+  }, []); // No dependencies needed as this only runs once
 
   // Map each progress step to the paths that should be visible
   // The order is important - it determines the drawing sequence
@@ -96,8 +81,8 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
         const pathElement = svgRef.current?.querySelector(`#${pathId}`) as SVGPathElement;
         
         if (pathElement) {
-          const pathLength = pathElement.getTotalLength();
-          const delay = idx * 0.3 * animationSpeed; // Increased stagger time
+          {/* SVG Paths (from Syllabyte.svg) */} {/* cspell: disable-line */}
+          const delay = idx * 0.3 * animationSpeed;
           
           // Make visible
           pathElement.style.opacity = '1';
