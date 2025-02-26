@@ -1,6 +1,6 @@
 # My Brain Progress
 
-A React + TypeScript application featuring a custom **BrainProgress** component with an animated "unwinding" effect using an SVG brain logo.
+A React + TypeScript application featuring a custom **BrainProgress** component that displays an animated "unwinding" effect using an SVG brain logo.
 
 ## Table of Contents
 
@@ -9,49 +9,164 @@ A React + TypeScript application featuring a custom **BrainProgress** component 
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
 - [Usage](#usage)
-- [Scripts](#scripts)
+- [Testing & Integration](#testing--integration)
+- [Performance Optimizations](#performance-optimizations)
 - [Customization](#customization)
 - [Documentation](#documentation)
 - [License](#license)
 
 ## Overview
 
-My Brain Progress is built with [Vite](https://vitejs.dev/) to take advantage of fast, modern development tooling. The core highlight of this project is the **BrainProgress** component, which displays a visually appealing loading/unwinding animation on an SVG brain logo to indicate progress.
+My Brain Progress leverages [Vite](https://vitejs.dev/) for modern development tooling. The core component, **BrainProgress**, provides a visually appealing progress indicator using an animated SVG brain that "unwinds" as progress increases.
 
 ## Features
 
-- **SVG-Based Animation:** An unwinding animation that updates dynamically based on progress percentage.
-- **TypeScript Support:** Strongly typed components for reliability and maintainability.
-- **Responsive Design:** The component adapts to various screen sizes and dimensions.
-- **Multiple Progress Input Options:** Accepts a direct percentage or calculates progress as `(value / maxValue) * 100`.
-- **Customizable Styles:** Easily change colors, stroke widths, or backgrounds.
-- **Accessibility:** Provides proper ARIA labels and attributes.
+- **Dynamic SVG Animation:** Brain logo progressively "unwinds" based on progress
+- **TypeScript Integration:** Full type safety and improved developer experience
+- **Responsive Design:** Adapts seamlessly to different screen sizes
+- **Flexible Progress Input:** Use direct percentage or value/maxValue calculation
+- **Custom Styling:** Configurable colors, dimensions, and animation speeds
+- **Accessibility:** ARIA compliant with proper labels and roles
+- **Performance Optimized:** GPU-accelerated animations and React optimizations
+- **Comprehensive Testing:** Unit and integration tests using Vitest
 
-In your project root, you have access to these NPM scripts:
+## Getting Started
 
-    npm run dev: Starts the development server.
-    npm run build: Builds the application for production.
-    npm run preview: Locally previews the production build.
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Start development server:
+```bash
+npm run dev
+```
+
+3. Run tests:
+```bash
+npm test
+```
+
+4. Build for production:
+```bash
+npm run build
+npm run preview
+```
+
+## Project Structure
+
+    .gitignore
+    eslint.config.js
+    index.html
+    package.json
+    public/
+      vite.svg
+    README.md
+    src/
+      App.test.tsx
+      App.tsx
+      assets/
+        images/
+          Progress 0%.png
+          Progress 25%.png
+          Progress 50%.png
+          Progress 100%.png
+          ...
+        Syllabyte.svg
+      components/
+        BrainProgress.test.tsx
+        BrainProgress.tsx
+      docs/
+        SVG Brain Logo Animation.docx
+        SVG Brain Storyboard Unwind.pdf
+      main.tsx
+      styles/
+        BrainProgress.css
+      test/
+        setup.ts
+      vite-env.d.ts
+    tsconfig.app.json
+    tsconfig.json
+    tsconfig.node.json
+    vite.config.ts
+
+## Usage
+
+Import and use the BrainProgress component:
+
+```tsx
+import { BrainProgress } from './components/BrainProgress';
+
+function App() {
+  return (
+    <BrainProgress
+      value={75}
+      maxValue={100}
+      showLabel={true}
+      animationSpeed={1.5}
+      customColors={{
+        primary: '#06c9a1',
+        secondary: '#007afc'
+      }}
+    />
+  );
+}
+```
+
+## Testing & Integration
+
+The project uses Vitest with React Testing Library:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with UI
+npm run test:ui
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+Test files are located in:
+- `src/components/BrainProgress.test.tsx` - Unit tests
+- `src/App.test.tsx` - Integration tests
+- `src/test/setup.ts` - Test configuration
+
+## Performance Optimizations
+
+- **GPU Acceleration:** Uses CSS transform and opacity for smooth animations
+- **RAF Implementation:** Leverages requestAnimationFrame for optimal updates
+- **Memoization:** Optimizes calculations with useMemo
+- **Lazy Loading:** Support for React.lazy and Suspense
 
 ## Customization
 
-    BrainProgress Props
-        totalPercent?: number; – Directly set the progress percentage.
-        value?: number; maxValue?: number; – Calculate progress as (value / maxValue) * 100.
-        backgroundColor?: string; – Background track color.
-        showLabel?: boolean; – Toggles display of the percentage label.
-        width?: number; height?: number; – Dimensions of the SVG container.
-        customColors?: { primary?: string; secondary?: string }; – Color theme for the progress stroke and label.
-        animationSpeed?: number; – Duration (in seconds) of the progress animation.
+Available props for BrainProgress:
 
-Feel free to modify the SVG paths and animations to achieve the exact “unwinding” effect shown in the storyboard.
+```typescript
+interface BrainProgressProps {
+  totalPercent?: number;              // Direct percentage value
+  value?: number;                     // Current progress value
+  maxValue?: number;                  // Maximum progress value
+  backgroundColor?: string;           // Background color
+  showLabel?: boolean;                // Show percentage label
+  width?: number;                     // Component width
+  height?: number;                    // Component height
+  customColors?: {                    // Gradient colors
+    primary?: string;
+    secondary?: string;
+  };
+  animationSpeed?: number;            // Animation duration in seconds
+}
+```
 
 ## Documentation
 
-For further details, refer to the following documents in the src/docs/ folder:
+Additional documentation in `src/docs/`:
+- `SVG Brain Logo Animation.docx` - Functional requirements
+- `SVG Brain Storyboard Unwind.pdf` - Animation storyboard
 
-    SVG Brain Logo Animation.docx – Detailed functional and visual requirements.
-    SVG Brain Storyboard Unwind.pdf – Visual storyboard of the “unwinding” animation.
+## License
 
-
-For any questions or suggestions, please open an issue or submit a pull request.
+MIT License. See [LICENSE](LICENSE) for details.

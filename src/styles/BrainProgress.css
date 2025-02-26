@@ -1,0 +1,162 @@
+/* Base container styling */
+.brain-progress-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+}
+
+/* SVG base styling */
+.brain-progress-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible; /* Allow paths to extend beyond SVG boundaries */
+}
+
+/* Brain path base styling */
+.brain-path {
+  opacity: 0; /* Start hidden */
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4px;
+  fill: url(#brain-gradient); /* Enable gradient fill */
+  transform-origin: center;
+  /* Enhanced animation properties */
+  stroke-dasharray: 0;
+  stroke-dashoffset: 0;
+  /* Will be overridden by inline styles for animation */
+  transition-property: stroke-dashoffset, opacity, fill-opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: stroke-dashoffset, opacity, fill-opacity;
+}
+
+/* Stem path styling (path-1) - ensure it's visible first */
+#path-1 {
+  z-index: 10; /* Ensure stem is visually prioritized */
+}
+
+/* Enhance animation effects by level */
+[data-progress="25"] #path-1 {
+  opacity: 1;
+}
+
+[data-progress="50"] #path-1,
+[data-progress="50"] #path-6 {
+  opacity: 1;
+}
+
+[data-progress="75"] #path-1,
+[data-progress="75"] #path-6,
+[data-progress="75"] #path-5,
+[data-progress="75"] #path-3,
+[data-progress="75"] #path-2 {
+  opacity: 1;
+}
+
+[data-progress="100"] .brain-path {
+  opacity: 1;
+}
+
+/* Add color stops for the paths to enhance visual quality */
+.brain-path {
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.3));
+}
+
+/* On hover, add a subtle glow for interactive feedback */
+.brain-progress-container:hover .brain-path[style*="opacity: 1"] {
+  filter: drop-shadow(0 0 3px rgba(6, 201, 161, 0.5));
+}
+
+/* Accessibility focus style */
+.brain-progress-container:focus-visible {
+  outline: 3px solid #007afc;
+  outline-offset: 2px;
+  border-radius: 5px;
+}
+
+/* Style for the percentage label container */
+.brain-progress-label {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+/* Style for the percentage label container (which is the <g> element in the SVG) */
+.brain-progress-container svg g {
+  transition: transform 0.3s ease-out;
+}
+
+/* Style for text label */
+.brain-progress-container svg text {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+  font-weight: 600;
+}
+
+/* Responsive adjustments for percentage label */
+@media (max-width: 480px) {
+  .brain-progress-label {
+    font-size: 1rem;
+    width: 60px;
+    height: 60px;
+  }
+  
+  .brain-progress-container svg text {
+    font-size: 30px;
+  }
+  
+  .brain-progress-container svg circle {
+    r: 60px;
+  }
+}
+
+/* Optional pulse animation when progress reaches 100% */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Apply pulse animation on the label when fully complete */
+.brain-progress-container[aria-valuenow="100"] .brain-progress-label {
+  animation: pulse 1s ease-in-out;
+}
+
+/* Apply pulse animation on completion */
+.brain-progress-container[aria-valuenow="100"] svg g {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Add a subtle drawing animation */
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Add a fade-in animation for better visibility */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Add fill animation keyframes */
+@keyframes fillIn {
+  from {
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length);
+  }
+  to {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
