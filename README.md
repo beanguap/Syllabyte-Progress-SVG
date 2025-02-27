@@ -169,6 +169,7 @@ Additional documentation in `src/docs/`:
 
 Developer:
 
+https://www.upwork.com/freelancers/~0172915a08bf077b1b?companyReference=1885205629154621004&mp_source=share
 https://x.com/Pybeancoder
 
 MIT License. See [LICENSE](LICENSE) for details.
