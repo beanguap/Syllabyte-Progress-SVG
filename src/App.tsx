@@ -67,12 +67,18 @@ const App: React.FC = () => {
           pausingRef.current = true;
           setIsPausingAtEnd(true);
           
-          // Schedule direction change
+          // Force the brain to show as fully filled
+          setProgress(100); // Set twice to ensure state update
+          
+          // Schedule direction change after a longer delay
           pauseTimeout = setTimeout(() => {
             directionRef.current = -1;
-            pausingRef.current = false;
-            setIsPausingAtEnd(false);
-          }, 2000);
+            // Don't reset isPausingAtEnd immediately
+            setTimeout(() => {
+              pausingRef.current = false;
+              setIsPausingAtEnd(false);
+            }, 500); // Add a short delay before starting reverse animation
+          }, 3500);
         } 
         else if (newProgress <= 0 && directionRef.current < 0) {
           progressRef.current = 0;
@@ -206,6 +212,8 @@ const App: React.FC = () => {
             height="300px"
             isPaused={isPausingAtEnd}
             animationSpeed={speed} // Will now always be 0.5
+            // Change the instantFill logic - ensure it stays visible
+            instantFill={progress >= 99} // Always use instantFill for values near 100%
             onAnimationComplete={() => console.log('Animation completed!')}
             customColors={{
               primary: '#ff4500',

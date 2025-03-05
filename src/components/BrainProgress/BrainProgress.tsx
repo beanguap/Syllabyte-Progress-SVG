@@ -41,6 +41,8 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  // Keep only one declaration of prevPathsRef that persists between renders
+  const prevPathsRef = useRef<string[]>([]);
   
   // Use our animation hook
   const { animate } = useAnimation(animationSpeed);
@@ -108,7 +110,7 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
           path.style.fillOpacity = '0';
         } else {
           // Apply initial animation state using CSS custom properties
-          animate(path, {
+          animate(path as unknown as HTMLElement, {
             strokeDasharray: `${pathLength}px`,
             strokeDashoffset: `${pathLength}px`,
             opacity: '0',
@@ -120,16 +122,29 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
       // Animate visible paths
       const animationSequence = reverse ? [...pathIds].reverse() : pathIds;
       
-      animationSequence.forEach((pathId, idx) => {
+      // For smooth transitions when direction changes, merge with previously visible paths
+      // This is key to preventing the flash glitch
+      const visiblePaths = reverse ? 
+        [...new Set([...animationSequence, ...prevPathsRef.current])] : 
+        animationSequence;
+      
+      // Update reference for next direction change
+      prevPathsRef.current = animationSequence;
+      
+      visiblePaths.forEach((pathId, idx) => {
         const pathElement = svgRef.current?.querySelector(`#${pathId}`) as SVGPathElement;
         
         if (pathElement) {
           if (instantFill) {
             // Instantly show and fill the path without animation
+            const pathLength = pathElement.getTotalLength();
             pathElement.style.opacity = '1';
             pathElement.style.fillOpacity = '1';
-            pathElement.style.strokeDasharray = 'none';
+            pathElement.style.strokeDasharray = `${pathLength}px`;
             pathElement.style.strokeDashoffset = '0';
+            // Remove any ongoing animations or transitions
+            pathElement.style.animation = 'none';
+            pathElement.style.transition = 'none';
             
             // Call completion callback after all paths are filled
             if (idx === animationSequence.length - 1 && onAnimationComplete) {
@@ -140,19 +155,26 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
             const pathLength = pathElement.getTotalLength();
             const delay = idx * 0.3 * animationSpeed;
             
-            // Make visible
-            animate(pathElement, { opacity: '1' }, delay);
+            // When reversing, keep paths visible to avoid flash
+            // Don't immediately set opacity to 0 when reversing
+            if (!reverse || (reverse && pathElement.style.opacity !== '1')) {
+              animate(pathElement as unknown as HTMLElement, { opacity: '1' }, delay);
+            }
             
-            // Create animations
+            // Use a more gradual transition for fillOpacity when reversing
+            const fillOpacityDuration = reverse ? animationSpeed * 1.5 : animationSpeed;
+            const fillOpacityDelay = reverse ? delay : delay + (animationSpeed * 0.5);
+            
+            // Create animations with improved timing
             pathElement.style.animation = `fillIn ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s ${reverse ? 'reverse' : 'forwards'}`;
             pathElement.style.transition = `
               stroke-dashoffset ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s,
-              opacity 0.5s ease ${delay}s,
-              fill-opacity ${animationSpeed}s ease-in ${delay + (animationSpeed * 0.5)}s
+              opacity ${reverse ? '1s' : '0.5s'} ease ${delay}s,
+              fill-opacity ${fillOpacityDuration}s ease-in ${fillOpacityDelay}s
             `;
             
             // Animate stroke and fill using our hook
-            animate(pathElement, {
+            animate(pathElement as unknown as HTMLElement, {
               strokeDashoffset: reverse ? `${pathLength}px` : '0px',
               fillOpacity: reverse ? '0' : '1'
             }, delay);
