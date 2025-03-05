@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo, Suspense } from 'react';
 import { BrainProgressProps } from './types';
+import { useAnimation } from '../../hooks/useAnimation';
 import './BrainProgress.css'; 
 
 const BrainProgress: React.FC<BrainProgressProps> = ({
@@ -11,7 +12,12 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
   width = 200,
   height = 200,
   customColors = { primary: '#06c9a1', secondary: '#007afc' },
-  animationSpeed = 1
+  animationSpeed = 1,
+  isPaused = false,
+  reverse = false,
+  autoScale = false,
+  onAnimationComplete,
+  fallback = <div className="brain-progress-loading">Loading...</div>
 }) => {
   // Calculate raw progress and clamp to [0,100]
   const rawProgress = useMemo(() => {
@@ -31,11 +37,21 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
   }, [rawProgress]);
 
   const [isInitialRender, setIsInitialRender] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Use our animation hook
+  const { animate } = useAnimation(animationSpeed);
 
   useEffect(() => {
     setIsInitialRender(false);
-  }, []); // No dependencies needed as this only runs once
+    
+    // Set loading to false once component is mounted
+    const timer = setTimeout(() => setIsLoading(false), 100);
+    
+    return () => clearTimeout(timer);
+  }, []); 
 
   // Map each progress step to the paths that should be visible
   // The order is important - it determines the drawing sequence
@@ -51,12 +67,33 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
     return pathSteps[steppedProgress] || [];
   }, [steppedProgress]);
 
+  // Apply auto-scaling if enabled
   useEffect(() => {
-    if (!isInitialRender && svgRef.current) {
+    if (autoScale && containerRef.current && svgRef.current) {
+      const resizeObserver = new ResizeObserver(() => {
+        if (containerRef.current) {
+          const { width, height } = containerRef.current.getBoundingClientRect();
+          const minDimension = Math.min(width, height);
+          
+          if (svgRef.current) {
+            svgRef.current.style.width = `${minDimension}px`;
+            svgRef.current.style.height = `${minDimension}px`;
+          }
+        }
+      });
+      
+      resizeObserver.observe(containerRef.current);
+      return () => resizeObserver.disconnect();
+    }
+  }, [autoScale]);
+
+  // Handle animations using the useAnimation hook
+  useEffect(() => {
+    if (!isInitialRender && svgRef.current && !isPaused) {
       // Get all brain paths
       const allPaths = Array.from(svgRef.current.querySelectorAll('.brain-path'));
       
-      // First reset all paths to hidden
+      // Reset all paths to hidden first
       allPaths.forEach((pathElement) => {
         const path = pathElement as SVGPathElement;
         const pathLength = path.getTotalLength();
@@ -64,53 +101,70 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
         // Set CSS custom property for path length
         path.style.setProperty('--path-length', `${pathLength}px`);
         
-        // Initial state
-        path.style.strokeDasharray = `${pathLength}px`;
-        path.style.strokeDashoffset = `${pathLength}px`;
-        path.style.opacity = '0';
-        path.style.fillOpacity = '0';
+        // Apply initial animation state using CSS custom properties
+        animate(path, {
+          strokeDasharray: `${pathLength}px`,
+          strokeDashoffset: `${pathLength}px`,
+          opacity: '0',
+          fillOpacity: '0'
+        });
       });
       
-      // Then animate the visible paths
-      pathIds.forEach((pathId, idx) => {
+      // Animate visible paths
+      const animationSequence = reverse ? [...pathIds].reverse() : pathIds;
+      
+      animationSequence.forEach((pathId, idx) => {
         const pathElement = svgRef.current?.querySelector(`#${pathId}`) as SVGPathElement;
         
         if (pathElement) {
-          {/* SVG Paths (from Syllabyte.svg) */} {/* cspell: disable-line */}
+          const pathLength = pathElement.getTotalLength();
           const delay = idx * 0.3 * animationSpeed;
           
           // Make visible
-          pathElement.style.opacity = '1';
+          animate(pathElement, { opacity: '1' }, delay);
           
-          // Apply enhanced animation
-          pathElement.style.animation = `fillIn ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s forwards`;
+          // Create animations
+          pathElement.style.animation = `fillIn ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s ${reverse ? 'reverse' : 'forwards'}`;
           pathElement.style.transition = `
             stroke-dashoffset ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s,
             opacity 0.5s ease ${delay}s,
             fill-opacity ${animationSpeed}s ease-in ${delay + (animationSpeed * 0.5)}s
           `;
           
-          // Animate stroke and fill
-          requestAnimationFrame(() => {
-            pathElement.style.strokeDashoffset = '0px';
-            pathElement.style.fillOpacity = '1';
-          });
+          // Animate stroke and fill using our hook
+          animate(pathElement, {
+            strokeDashoffset: reverse ? `${pathLength}px` : '0px',
+            fillOpacity: reverse ? '0' : '1'
+          }, delay);
+          
+          // Call the completion callback after the last animation finishes
+          if (idx === animationSequence.length - 1 && onAnimationComplete) {
+            setTimeout(() => onAnimationComplete(), 
+              (delay + animationSpeed * 1.2) * 1000);
+          }
         }
       });
     }
-  }, [pathIds, isInitialRender, animationSpeed]);
+  }, [pathIds, isInitialRender, animationSpeed, isPaused, reverse, animate, onAnimationComplete]);
   
   // Display original raw progress for accuracy in the label and ARIA attributes
   const displayProgress = Math.round(rawProgress);
 
+  if (isLoading) {
+    return <Suspense fallback={fallback}>{fallback}</Suspense>;
+  }
+
   return (
     <div 
+      ref={containerRef}
       className="brain-progress-container"
       style={{ width, height }}
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={displayProgress}
+      data-progress={steppedProgress}
+      data-paused={isPaused ? 'true' : 'false'}
     >
       <svg 
         ref={svgRef}
@@ -137,7 +191,7 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
           </linearGradient>
         </defs>
 
-        {/* SVG Paths (from Syllabyte.svg) */}
+        {/* SVG Paths */}
         <path 
           id="path-1"
           d="M641.22,896.98c-11.97,0-23.26-7.29-27.76-19.15-11.15-29.17-50.64-109.64-98.7-131.12-14.97-6.69-21.68-24.25-14.99-39.23,6.7-14.97,24.26-21.68,39.23-14.99,79.09,35.35,125,151.15,129.97,164.24,5.83,15.33-1.88,32.48-17.2,38.31-3.47,1.32-7.04,1.95-10.55,1.95Z"
@@ -245,7 +299,7 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
 
         {/* Center progress text */}
         {showLabel && (
-          <g>
+          <g className="brain-progress-label">
             <circle cx="500" cy="500" r="80" fill="rgba(255,255,255,0.7)" />
             <text 
               x="500" 
@@ -266,11 +320,3 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
 };
 
 export default BrainProgress;
-
-// Usage example
-<BrainProgress 
-  value={75} 
-  maxValue={100} 
-  showLabel={true}
-  animationSpeed={1.5} // Slower for smoother transitions
-/>

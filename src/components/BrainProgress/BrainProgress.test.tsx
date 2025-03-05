@@ -167,4 +167,73 @@ describe('BrainProgress', () => {
     
     expect(screen.getByText('50%')).toBeInTheDocument();
   });
+
+  it('adds data-progress attribute with correct value', async () => {
+    const { container } = render(<BrainProgress value={50} maxValue={100} />);
+    
+    await act(async () => {
+      vi.advanceTimersByTime(1000);
+    });
+    
+    const progressContainer = container.querySelector('.brain-progress-container');
+    expect(progressContainer).toHaveAttribute('data-progress', '50');
+  });
+
+  it('supports pause functionality', async () => {
+    const { container, rerender } = render(
+      <BrainProgress value={50} maxValue={100} isPaused={false} />
+    );
+    
+    await act(async () => {
+      vi.advanceTimersByTime(500);
+    });
+    
+    // Pause the animation
+    rerender(<BrainProgress value={50} maxValue={100} isPaused={true} />);
+    
+    const progressContainer = container.querySelector('.brain-progress-container');
+    expect(progressContainer).toHaveAttribute('data-paused', 'true');
+  });
+
+  it('supports auto-scaling when enabled', async () => {
+    const { container } = render(
+      <BrainProgress value={50} maxValue={100} autoScale={true} />
+    );
+    
+    await act(async () => {
+      vi.advanceTimersByTime(1000);
+    });
+    
+    // Mock the ResizeObserver
+    const resizeObserverInstance = {
+      observe: vi.fn(),
+      unobserve: vi.fn(),
+      disconnect: vi.fn()
+    };
+    
+    // @ts-ignore - Mock implementation
+    window.ResizeObserver = vi.fn(() => resizeObserverInstance);
+    
+    expect(container.querySelector('.brain-progress-container')).toBeInTheDocument();
+  });
+
+  it('calls onAnimationComplete callback when animation finishes', async () => {
+    const onCompleteMock = vi.fn();
+    
+    render(
+      <BrainProgress 
+        value={100} 
+        maxValue={100} 
+        animationSpeed={0.2}
+        onAnimationComplete={onCompleteMock} 
+      />
+    );
+    
+    // Advance time to complete all animations
+    await act(async () => {
+      vi.advanceTimersByTime(5000); // Ensure all animations complete
+    });
+    
+    expect(onCompleteMock).toHaveBeenCalled();
+  });
 });
