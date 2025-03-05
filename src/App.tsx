@@ -112,6 +112,15 @@ const App: React.FC = () => {
     };
   }, [isLooping]); // Only depend on isLooping to avoid unnecessary restarts
   
+  // Add this effect to ensure proper display at 100% when manually setting progress
+  useEffect(() => {
+    // When manually setting to 100% via slider, ensure it stays visible
+    if (progress === 100 && !isLooping) {
+      pausingRef.current = true;
+      setIsPausingAtEnd(true);
+    }
+  }, [progress, isLooping]);
+
   return (
     <div style={{ padding: '20px' }}>
       <h1>Brain Progress Demo</h1>
@@ -124,7 +133,7 @@ const App: React.FC = () => {
             value={25} 
             maxValue={100} 
             showLabel={true}
-            instantFill={true} // Use instant fill instead of animation
+            instantFill={true} // Always use instantFill for static examples
           />
         </div>
 
@@ -214,9 +223,9 @@ const App: React.FC = () => {
             width="100%"
             height="300px"
             isPaused={isPausingAtEnd}
-            animationSpeed={speed} // Will now always be 0.5
-            // Change the instantFill logic - ensure it stays visible
-            instantFill={progress >= 99.5} // Only use instantFill at exactly 100%
+            animationSpeed={speed}
+            // Modified to ensure 100% always shows correctly - handle the specifics in the component
+            instantFill={!isLooping || progress === 100}
             onAnimationComplete={() => console.log('Animation completed!')}
             customColors={{
               primary: '#ff4500',

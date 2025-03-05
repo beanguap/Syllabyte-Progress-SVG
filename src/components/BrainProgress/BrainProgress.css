@@ -18,6 +18,14 @@
   transition: none !important;
 }
 
+/* Ensure visibility when paused */
+[data-paused="true"][data-progress="100"] .brain-path {
+  opacity: 1 !important;
+  fill-opacity: 1 !important;
+  stroke-dashoffset: 0 !important;
+  transition: none !important;
+}
+
 /* Base container styling */
 .brain-progress-container {
   position: relative;
@@ -45,12 +53,12 @@
   /* Enhanced animation properties */
   stroke-dasharray: var(--path-length, 0);
   stroke-dashoffset: var(--path-length, 0);
-  /* Will be overridden by inline styles for animation */
+  /* Improved transition properties with longer durations */
   transition-property: stroke-dashoffset, opacity, fill-opacity;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   will-change: stroke-dashoffset, opacity, fill-opacity;
-  /* Prevent flash with longer opacity transitions */
-  transition-duration: 0.5s, 0.8s, 1s;
+  /* Longer opacity transitions to prevent flash */
+  transition-duration: 0.8s, 1.2s, 1.5s;
 }
 
 /* Stem path styling (path-1) - ensure it's visible first */
@@ -81,6 +89,13 @@
 [data-progress="100"] .brain-path {
   opacity: 1;
   transition-duration: 0.8s;
+}
+
+/* Keep paths visible at 100% */
+[data-progress="100"] .brain-path {
+  opacity: 1;
+  fill-opacity: 1;
+  stroke-dashoffset: 0;
 }
 
 /* Add color stops for the paths to enhance visual quality */
@@ -191,19 +206,41 @@
 
 /* Improve animation for path disappearance */
 @keyframes fadeOut {
-  from { 
+  0% { 
     opacity: 1;
     fill-opacity: 1; 
+    stroke-dashoffset: 0;
   }
-  to { 
+  /* Slow start for smoother transition */
+  30% {
+    opacity: 1;
+    fill-opacity: 0.9;
+    stroke-dashoffset: 0;
+  }
+  100% { 
     opacity: 0;
     fill-opacity: 0;
+    stroke-dashoffset: var(--path-length, 0);
   }
 }
 
 /* Ensure smoother transitions when animating backwards */
 .brain-progress-container[aria-valuenow="100"] .brain-path {
-  transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 1s ease-out,
-              fill-opacity 1.2s ease-out;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 1.5s ease-out,
+              fill-opacity 1.8s ease-out;
+}
+
+/* Add persistence class to prevent flash during transitions */
+.brain-path.persistent {
+  transition: opacity 1.8s ease-out, 
+              fill-opacity 2s ease-out,
+              stroke-dashoffset 1.5s ease-out;
+}
+
+/* Make paths persistent at 100% */
+.brain-path.persistent {
+  opacity: 1 !important;
+  fill-opacity: 1 !important;
+  stroke-dashoffset: 0 !important;
 }

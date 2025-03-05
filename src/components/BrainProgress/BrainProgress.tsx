@@ -96,7 +96,10 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
       // Get all brain paths
       const allPaths = Array.from(svgRef.current.querySelectorAll('.brain-path'));
       
-      // Reset all paths to hidden first
+      // Special case: If we're at 100%, ensure all paths are visible regardless of animation state
+      const isFullProgress = steppedProgress === 100;
+      
+      // Reset all paths to hidden first, unless we're at 100%
       allPaths.forEach((pathElement) => {
         const path = pathElement as SVGPathElement;
         const pathLength = path.getTotalLength();
@@ -104,10 +107,24 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
         // Set CSS custom property for path length
         path.style.setProperty('--path-length', `${pathLength}px`);
         
-        if (instantFill) {
-          // For instant fill, set initial state to invisible
-          path.style.opacity = '0';
-          path.style.fillOpacity = '0';
+        // Always treat 100% progress as instant fill to prevent disappearing paths
+        if (instantFill || isFullProgress) {
+          // For instant fill, set initial state based on visibility
+          const shouldBeVisible = pathIds.includes(path.id) || (isFullProgress && path.id.startsWith('path-'));
+          path.style.opacity = shouldBeVisible ? '1' : '0';
+          path.style.fillOpacity = shouldBeVisible ? '1' : '0'; 
+          path.style.strokeDasharray = `${pathLength}px`;
+          path.style.strokeDashoffset = shouldBeVisible ? '0' : `${pathLength}px`;
+          // Ensure transitions are disabled for instant fill
+          path.style.animation = 'none';
+          path.style.transition = 'none';
+          
+          // Add persistent class to paths at 100% even when not in instantFill mode
+          if (isFullProgress) {
+            path.classList.add('persistent');
+          } else {
+            path.classList.remove('persistent');
+          }
         } else {
           // Apply initial animation state using CSS custom properties
           animate(path as unknown as HTMLElement, {
@@ -119,95 +136,103 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
         }
       });
       
-      // Animate visible paths
-      const animationSequence = reverse ? [...pathIds].reverse() : pathIds;
-      
-      // IMPORTANT FIX: Store previous paths to ensure smooth transitions
-      const currentVisiblePaths = new Set(animationSequence);
-      const previousVisiblePaths = new Set(prevPathsRef.current);
-      
-      // Create a merged set that includes both current and previous paths
-      // This prevents the flash by ensuring we transition paths out smoothly
-      // rather than suddenly removing them
-      const transitionPaths = new Set([...currentVisiblePaths, ...previousVisiblePaths]);
-      
-      // Update reference for next direction change
-      prevPathsRef.current = [...animationSequence];
-      
-      // Process all paths that need transitions (both appearing and disappearing)
-      Array.from(transitionPaths).forEach((pathId, idx) => {
-        const pathElement = svgRef.current?.querySelector(`#${pathId}`) as SVGPathElement;
+      // For 100% progress, ensure we don't accidentally hide paths when paused
+      if (isFullProgress && isPaused) {
+        allPaths.forEach(path => {
+          if (path.id.startsWith('path-')) {
+            (path as SVGPathElement).style.opacity = '1';
+            (path as SVGPathElement).style.fillOpacity = '1';
+          }
+        });
         
-        if (pathElement) {
-          const isCurrentlyVisible = currentVisiblePaths.has(pathId);
-          const wasVisible = previousVisiblePaths.has(pathId);
+        // Call completion callback for 100% state
+        if (onAnimationComplete) {
+          onAnimationComplete();
+        }
+      } else if (!instantFill && !isFullProgress) {
+        // Continue with existing animation logic for non-100% states
+        if (!instantFill) {
+          // Animate visible paths
+          const animationSequence = reverse ? [...pathIds].reverse() : pathIds;
           
-          if (instantFill) {
-            // Instantly show and fill the path without animation
-            const pathLength = pathElement.getTotalLength();
-            pathElement.style.opacity = isCurrentlyVisible ? '1' : '0';
-            pathElement.style.fillOpacity = isCurrentlyVisible ? '1' : '0';
-            pathElement.style.strokeDasharray = `${pathLength}px`;
-            pathElement.style.strokeDashoffset = isCurrentlyVisible ? '0' : `${pathLength}px`;
-            pathElement.style.animation = 'none';
-            pathElement.style.transition = 'none';
+          // IMPORTANT FIX: Store previous paths to ensure smooth transitions
+          const currentVisiblePaths = new Set(animationSequence);
+          const previousVisiblePaths = new Set(prevPathsRef.current);
+          
+          // Create a merged set that includes both current and previous paths
+          // This prevents the flash by ensuring we transition paths out smoothly
+          const transitionPaths = new Set([...currentVisiblePaths, ...previousVisiblePaths]);
+          
+          // Update reference for next direction change
+          prevPathsRef.current = [...animationSequence];
+          
+          // Process all paths that need transitions (both appearing and disappearing)
+          Array.from(transitionPaths).forEach((pathId, idx) => {
+            const pathElement = svgRef.current?.querySelector(`#${pathId}`) as SVGPathElement;
             
-            if (idx === animationSequence.length - 1 && onAnimationComplete) {
-              setTimeout(onAnimationComplete, 10);
-            }
-          } else if (!isPaused) {
-            const pathLength = pathElement.getTotalLength();
-            // Adjust delay based on path position and direction
-            const delay = idx * 0.3 * animationSpeed;
-            
-            // FIX: Smooth crossfade transitions to prevent flash
-            // When path needs to disappear (was visible but now isn't)
-            if (wasVisible && !isCurrentlyVisible && reverse) {
-              // For disappearing paths during reverse, fade out slowly
-              pathElement.style.transition = `
-                stroke-dashoffset ${animationSpeed * 1.5}s cubic-bezier(0.4, 0, 0.2, 1) ${delay * 0.5}s,
-                opacity ${animationSpeed}s ease-out ${delay * 0.5}s,
-                fill-opacity ${animationSpeed * 1.2}s ease-out ${delay * 0.3}s
-              `;
-              // Fade out gradually
-              animate(pathElement as unknown as HTMLElement, {
-                opacity: '0',
-                fillOpacity: '0',
-                strokeDashoffset: `${pathLength}px`
-              }, delay * 0.5);
-            }
-            // For appearing paths or static paths
-            else {
-              // When path should be visible
-              if (isCurrentlyVisible) {
-                pathElement.style.animation = `fillIn ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s ${reverse ? 'reverse' : 'forwards'}`;
-                pathElement.style.transition = `
-                  stroke-dashoffset ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s,
-                  opacity ${reverse ? '1s' : '0.5s'} ease ${delay}s,
-                  fill-opacity ${animationSpeed * 1.5}s ease-in ${delay + (animationSpeed * 0.3)}s
-                `;
+            if (pathElement) {
+              const isCurrentlyVisible = currentVisiblePaths.has(pathId);
+              const wasVisible = previousVisiblePaths.has(pathId);
+              
+              if (!isPaused) {
+                const pathLength = pathElement.getTotalLength();
+                // Adjust delay based on path position and direction
+                const delay = idx * 0.3 * animationSpeed;
                 
-                // Always set opacity to 1 for currently visible paths
-                animate(pathElement as unknown as HTMLElement, { opacity: '1' }, delay);
+                // FIX: Improved transition handling to prevent flash
+                // When path needs to disappear (was visible but now isn't)
+                if (wasVisible && !isCurrentlyVisible) {
+                  // For disappearing paths, increase transition duration and stagger timing
+                  const fadeOutDelay = reverse ? delay * 0.5 : (animationSequence.length - idx) * 0.15 * animationSpeed;
+                  
+                  // Ensure smoother fade out
+                  pathElement.style.transition = `
+                    stroke-dashoffset ${animationSpeed * 1.8}s cubic-bezier(0.4, 0, 0.2, 1) ${fadeOutDelay}s,
+                    opacity ${animationSpeed * 1.5}s ease-out ${fadeOutDelay}s,
+                    fill-opacity ${animationSpeed * 2.0}s ease-out ${fadeOutDelay * 0.8}s
+                  `;
+                  
+                  // CRITICAL FIX: Maintain visibility longer before fading out
+                  // This prevents the flash by creating an overlap between states
+                  setTimeout(() => {
+                    animate(pathElement as unknown as HTMLElement, {
+                      opacity: '0',
+                      fillOpacity: '0',
+                      strokeDashoffset: `${pathLength}px`
+                    }, 0);
+                  }, fadeOutDelay * 1000);
+                }
+                // For appearing paths or paths that stay visible
+                else if (isCurrentlyVisible) {
+                  pathElement.style.animation = `fillIn ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s ${reverse ? 'reverse' : 'forwards'}`;
+                  pathElement.style.transition = `
+                    stroke-dashoffset ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s,
+                    opacity ${animationSpeed * 0.8}s ease-in ${delay * 0.8}s,
+                    fill-opacity ${animationSpeed * 1.5}s ease-in ${delay + (animationSpeed * 0.3)}s
+                  `;
+                  
+                  // Always set opacity to 1 for currently visible paths
+                  animate(pathElement as unknown as HTMLElement, { opacity: '1' }, delay);
+                  
+                  // Animate stroke and fill
+                  animate(pathElement as unknown as HTMLElement, {
+                    strokeDashoffset: reverse ? `${pathLength}px` : '0px',
+                    fillOpacity: reverse ? '0' : '1'
+                  }, delay);
+                }
                 
-                // Animate stroke and fill
-                animate(pathElement as unknown as HTMLElement, {
-                  strokeDashoffset: reverse ? `${pathLength}px` : '0px',
-                  fillOpacity: reverse ? '0' : '1'
-                }, delay);
+                // Call the completion callback after the last animation finishes
+                if (isCurrentlyVisible && idx === animationSequence.length - 1 && onAnimationComplete) {
+                  setTimeout(() => onAnimationComplete(), 
+                    (delay + animationSpeed * 1.5) * 1000);
+                }
               }
             }
-            
-            // Call the completion callback after the last animation finishes
-            if (isCurrentlyVisible && idx === animationSequence.length - 1 && onAnimationComplete) {
-              setTimeout(() => onAnimationComplete(), 
-                (delay + animationSpeed * 1.5) * 1000);
-            }
-          }
+          });
         }
-      });
+      }
     }
-  }, [pathIds, isInitialRender, animationSpeed, isPaused, reverse, animate, onAnimationComplete, instantFill]);
+  }, [pathIds, isInitialRender, animationSpeed, isPaused, reverse, animate, onAnimationComplete, instantFill, steppedProgress]);
   
   // Display original raw progress for accuracy in the label and ARIA attributes
   const displayProgress = Math.round(rawProgress);
