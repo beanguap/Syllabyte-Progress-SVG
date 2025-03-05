@@ -114,9 +114,8 @@ const App: React.FC = () => {
           <BrainProgress 
             value={25} 
             maxValue={100} 
-            showLabel={true} 
-            animationSpeed={0.1} // Faster animation to see the fill immediately
-            isPaused={false} // Ensure animation runs
+            showLabel={true}
+            instantFill={true} // Use instant fill instead of animation
           />
         </div>
 
@@ -125,9 +124,8 @@ const App: React.FC = () => {
           <BrainProgress 
             value={50} 
             maxValue={100} 
-            showLabel={true} 
-            animationSpeed={0.1}
-            isPaused={false}
+            showLabel={true}
+            instantFill={true} 
           />
         </div>
 
@@ -136,9 +134,8 @@ const App: React.FC = () => {
           <BrainProgress 
             value={75} 
             maxValue={100} 
-            showLabel={true} 
-            animationSpeed={0.1}
-            isPaused={false}
+            showLabel={true}
+            instantFill={true}
           />
         </div>
 
@@ -147,9 +144,8 @@ const App: React.FC = () => {
           <BrainProgress 
             value={100} 
             maxValue={100} 
-            showLabel={true} 
-            animationSpeed={0.1}
-            isPaused={false}
+            showLabel={true}
+            instantFill={true}
           />
         </div>
       </div>

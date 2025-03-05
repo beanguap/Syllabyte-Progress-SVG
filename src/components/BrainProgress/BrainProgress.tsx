@@ -17,7 +17,8 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
   reverse = false,
   autoScale = false,
   onAnimationComplete,
-  fallback = <div className="brain-progress-loading">Loading...</div>
+  fallback = <div className="brain-progress-loading">Loading...</div>,
+  instantFill = false // Add default value
 }) => {
   // Calculate raw progress and clamp to [0,100]
   const rawProgress = useMemo(() => {
@@ -89,7 +90,7 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
 
   // Handle animations using the useAnimation hook
   useEffect(() => {
-    if (!isInitialRender && svgRef.current && !isPaused) {
+    if (!isInitialRender && svgRef.current) {
       // Get all brain paths
       const allPaths = Array.from(svgRef.current.querySelectorAll('.brain-path'));
       
@@ -101,13 +102,19 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
         // Set CSS custom property for path length
         path.style.setProperty('--path-length', `${pathLength}px`);
         
-        // Apply initial animation state using CSS custom properties
-        animate(path, {
-          strokeDasharray: `${pathLength}px`,
-          strokeDashoffset: `${pathLength}px`,
-          opacity: '0',
-          fillOpacity: '0'
-        });
+        if (instantFill) {
+          // For instant fill, set initial state to invisible
+          path.style.opacity = '0';
+          path.style.fillOpacity = '0';
+        } else {
+          // Apply initial animation state using CSS custom properties
+          animate(path, {
+            strokeDasharray: `${pathLength}px`,
+            strokeDashoffset: `${pathLength}px`,
+            opacity: '0',
+            fillOpacity: '0'
+          });
+        }
       });
       
       // Animate visible paths
@@ -117,35 +124,49 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
         const pathElement = svgRef.current?.querySelector(`#${pathId}`) as SVGPathElement;
         
         if (pathElement) {
-          const pathLength = pathElement.getTotalLength();
-          const delay = idx * 0.3 * animationSpeed;
-          
-          // Make visible
-          animate(pathElement, { opacity: '1' }, delay);
-          
-          // Create animations
-          pathElement.style.animation = `fillIn ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s ${reverse ? 'reverse' : 'forwards'}`;
-          pathElement.style.transition = `
-            stroke-dashoffset ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s,
-            opacity 0.5s ease ${delay}s,
-            fill-opacity ${animationSpeed}s ease-in ${delay + (animationSpeed * 0.5)}s
-          `;
-          
-          // Animate stroke and fill using our hook
-          animate(pathElement, {
-            strokeDashoffset: reverse ? `${pathLength}px` : '0px',
-            fillOpacity: reverse ? '0' : '1'
-          }, delay);
-          
-          // Call the completion callback after the last animation finishes
-          if (idx === animationSequence.length - 1 && onAnimationComplete) {
-            setTimeout(() => onAnimationComplete(), 
-              (delay + animationSpeed * 1.2) * 1000);
+          if (instantFill) {
+            // Instantly show and fill the path without animation
+            pathElement.style.opacity = '1';
+            pathElement.style.fillOpacity = '1';
+            pathElement.style.strokeDasharray = 'none';
+            pathElement.style.strokeDashoffset = '0';
+            
+            // Call completion callback after all paths are filled
+            if (idx === animationSequence.length - 1 && onAnimationComplete) {
+              setTimeout(onAnimationComplete, 10);
+            }
+          } else if (!isPaused) {
+            // Regular animation logic
+            const pathLength = pathElement.getTotalLength();
+            const delay = idx * 0.3 * animationSpeed;
+            
+            // Make visible
+            animate(pathElement, { opacity: '1' }, delay);
+            
+            // Create animations
+            pathElement.style.animation = `fillIn ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s ${reverse ? 'reverse' : 'forwards'}`;
+            pathElement.style.transition = `
+              stroke-dashoffset ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s,
+              opacity 0.5s ease ${delay}s,
+              fill-opacity ${animationSpeed}s ease-in ${delay + (animationSpeed * 0.5)}s
+            `;
+            
+            // Animate stroke and fill using our hook
+            animate(pathElement, {
+              strokeDashoffset: reverse ? `${pathLength}px` : '0px',
+              fillOpacity: reverse ? '0' : '1'
+            }, delay);
+            
+            // Call the completion callback after the last animation finishes
+            if (idx === animationSequence.length - 1 && onAnimationComplete) {
+              setTimeout(() => onAnimationComplete(), 
+                (delay + animationSpeed * 1.2) * 1000);
+            }
           }
         }
       });
     }
-  }, [pathIds, isInitialRender, animationSpeed, isPaused, reverse, animate, onAnimationComplete]);
+  }, [pathIds, isInitialRender, animationSpeed, isPaused, reverse, animate, onAnimationComplete, instantFill]);
   
   // Display original raw progress for accuracy in the label and ARIA attributes
   const displayProgress = Math.round(rawProgress);

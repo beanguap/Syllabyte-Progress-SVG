@@ -16,4 +16,5 @@ export interface BrainProgressProps {
   autoScale?: boolean;      // Add responsive scaling
   onAnimationComplete?: () => void; // Animation completion callback
   fallback?: React.ReactNode; // Content to show while loading
+  instantFill?: boolean; // Add this new prop
 }
