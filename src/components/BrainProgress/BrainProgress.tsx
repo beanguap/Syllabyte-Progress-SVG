@@ -122,67 +122,86 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
       // Animate visible paths
       const animationSequence = reverse ? [...pathIds].reverse() : pathIds;
       
-      // For smooth transitions when direction changes, merge with previously visible paths
-      // This is key to preventing the flash glitch
-      const visiblePaths = reverse ? 
-        [...new Set([...animationSequence, ...prevPathsRef.current])] : 
-        animationSequence;
+      // IMPORTANT FIX: Store previous paths to ensure smooth transitions
+      const currentVisiblePaths = new Set(animationSequence);
+      const previousVisiblePaths = new Set(prevPathsRef.current);
+      
+      // Create a merged set that includes both current and previous paths
+      // This prevents the flash by ensuring we transition paths out smoothly
+      // rather than suddenly removing them
+      const transitionPaths = new Set([...currentVisiblePaths, ...previousVisiblePaths]);
       
       // Update reference for next direction change
-      prevPathsRef.current = animationSequence;
+      prevPathsRef.current = [...animationSequence];
       
-      visiblePaths.forEach((pathId, idx) => {
+      // Process all paths that need transitions (both appearing and disappearing)
+      Array.from(transitionPaths).forEach((pathId, idx) => {
         const pathElement = svgRef.current?.querySelector(`#${pathId}`) as SVGPathElement;
         
         if (pathElement) {
+          const isCurrentlyVisible = currentVisiblePaths.has(pathId);
+          const wasVisible = previousVisiblePaths.has(pathId);
+          
           if (instantFill) {
             // Instantly show and fill the path without animation
             const pathLength = pathElement.getTotalLength();
-            pathElement.style.opacity = '1';
-            pathElement.style.fillOpacity = '1';
+            pathElement.style.opacity = isCurrentlyVisible ? '1' : '0';
+            pathElement.style.fillOpacity = isCurrentlyVisible ? '1' : '0';
             pathElement.style.strokeDasharray = `${pathLength}px`;
-            pathElement.style.strokeDashoffset = '0';
-            // Remove any ongoing animations or transitions
+            pathElement.style.strokeDashoffset = isCurrentlyVisible ? '0' : `${pathLength}px`;
             pathElement.style.animation = 'none';
             pathElement.style.transition = 'none';
             
-            // Call completion callback after all paths are filled
             if (idx === animationSequence.length - 1 && onAnimationComplete) {
               setTimeout(onAnimationComplete, 10);
             }
           } else if (!isPaused) {
-            // Regular animation logic
             const pathLength = pathElement.getTotalLength();
+            // Adjust delay based on path position and direction
             const delay = idx * 0.3 * animationSpeed;
             
-            // When reversing, keep paths visible to avoid flash
-            // Don't immediately set opacity to 0 when reversing
-            if (!reverse || (reverse && pathElement.style.opacity !== '1')) {
-              animate(pathElement as unknown as HTMLElement, { opacity: '1' }, delay);
+            // FIX: Smooth crossfade transitions to prevent flash
+            // When path needs to disappear (was visible but now isn't)
+            if (wasVisible && !isCurrentlyVisible && reverse) {
+              // For disappearing paths during reverse, fade out slowly
+              pathElement.style.transition = `
+                stroke-dashoffset ${animationSpeed * 1.5}s cubic-bezier(0.4, 0, 0.2, 1) ${delay * 0.5}s,
+                opacity ${animationSpeed}s ease-out ${delay * 0.5}s,
+                fill-opacity ${animationSpeed * 1.2}s ease-out ${delay * 0.3}s
+              `;
+              // Fade out gradually
+              animate(pathElement as unknown as HTMLElement, {
+                opacity: '0',
+                fillOpacity: '0',
+                strokeDashoffset: `${pathLength}px`
+              }, delay * 0.5);
+            }
+            // For appearing paths or static paths
+            else {
+              // When path should be visible
+              if (isCurrentlyVisible) {
+                pathElement.style.animation = `fillIn ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s ${reverse ? 'reverse' : 'forwards'}`;
+                pathElement.style.transition = `
+                  stroke-dashoffset ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s,
+                  opacity ${reverse ? '1s' : '0.5s'} ease ${delay}s,
+                  fill-opacity ${animationSpeed * 1.5}s ease-in ${delay + (animationSpeed * 0.3)}s
+                `;
+                
+                // Always set opacity to 1 for currently visible paths
+                animate(pathElement as unknown as HTMLElement, { opacity: '1' }, delay);
+                
+                // Animate stroke and fill
+                animate(pathElement as unknown as HTMLElement, {
+                  strokeDashoffset: reverse ? `${pathLength}px` : '0px',
+                  fillOpacity: reverse ? '0' : '1'
+                }, delay);
+              }
             }
             
-            // Use a more gradual transition for fillOpacity when reversing
-            const fillOpacityDuration = reverse ? animationSpeed * 1.5 : animationSpeed;
-            const fillOpacityDelay = reverse ? delay : delay + (animationSpeed * 0.5);
-            
-            // Create animations with improved timing
-            pathElement.style.animation = `fillIn ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s ${reverse ? 'reverse' : 'forwards'}`;
-            pathElement.style.transition = `
-              stroke-dashoffset ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s,
-              opacity ${reverse ? '1s' : '0.5s'} ease ${delay}s,
-              fill-opacity ${fillOpacityDuration}s ease-in ${fillOpacityDelay}s
-            `;
-            
-            // Animate stroke and fill using our hook
-            animate(pathElement as unknown as HTMLElement, {
-              strokeDashoffset: reverse ? `${pathLength}px` : '0px',
-              fillOpacity: reverse ? '0' : '1'
-            }, delay);
-            
             // Call the completion callback after the last animation finishes
-            if (idx === animationSequence.length - 1 && onAnimationComplete) {
+            if (isCurrentlyVisible && idx === animationSequence.length - 1 && onAnimationComplete) {
               setTimeout(() => onAnimationComplete(), 
-                (delay + animationSpeed * 1.2) * 1000);
+                (delay + animationSpeed * 1.5) * 1000);
             }
           }
         }

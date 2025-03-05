@@ -43,12 +43,14 @@
   fill: url(#brain-gradient); /* Enable gradient fill */
   transform-origin: center;
   /* Enhanced animation properties */
-  stroke-dasharray: 0;
-  stroke-dashoffset: 0;
+  stroke-dasharray: var(--path-length, 0);
+  stroke-dashoffset: var(--path-length, 0);
   /* Will be overridden by inline styles for animation */
   transition-property: stroke-dashoffset, opacity, fill-opacity;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   will-change: stroke-dashoffset, opacity, fill-opacity;
+  /* Prevent flash with longer opacity transitions */
+  transition-duration: 0.5s, 0.8s, 1s;
 }
 
 /* Stem path styling (path-1) - ensure it's visible first */
@@ -78,6 +80,7 @@
 
 [data-progress="100"] .brain-path {
   opacity: 1;
+  transition-duration: 0.8s;
 }
 
 /* Add color stops for the paths to enhance visual quality */
@@ -175,10 +178,32 @@
 @keyframes fillIn {
   from {
     fill-opacity: 0;
-    stroke-dashoffset: var(--path-length);
+    stroke-dashoffset: var(--path-length, 0);
+  }
+  50% {
+    fill-opacity: 0.2;
   }
   to {
     fill-opacity: 1;
     stroke-dashoffset: 0;
   }
+}
+
+/* Improve animation for path disappearance */
+@keyframes fadeOut {
+  from { 
+    opacity: 1;
+    fill-opacity: 1; 
+  }
+  to { 
+    opacity: 0;
+    fill-opacity: 0;
+  }
+}
+
+/* Ensure smoother transitions when animating backwards */
+.brain-progress-container[aria-valuenow="100"] .brain-path {
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 1s ease-out,
+              fill-opacity 1.2s ease-out;
 }

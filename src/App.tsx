@@ -41,7 +41,7 @@ const App: React.FC = () => {
     
     let rafId: number;
     let lastTimestamp: number | null = null;
-    let pauseTimeout: number | null = null; // Fixed: Use number instead of NodeJS.Timeout
+    let pauseTimeout: number | null = null;
     
     const animate = (timestamp: number) => {
       if (!lastTimestamp) lastTimestamp = timestamp;
@@ -68,16 +68,19 @@ const App: React.FC = () => {
           setIsPausingAtEnd(true);
           
           // Force the brain to show as fully filled
-          setProgress(100); // Set twice to ensure state update
+          setProgress(100);
           
-          // Schedule direction change after a longer delay
+          // FIX: Use longer pause at 100% for better visual effect
           pauseTimeout = setTimeout(() => {
-            directionRef.current = -1;
-            // Don't reset isPausingAtEnd immediately
-            setTimeout(() => {
-              pausingRef.current = false;
-              setIsPausingAtEnd(false);
-            }, 500); // Add a short delay before starting reverse animation
+            // Don't immediately change direction on exact frame - add a small delay
+            pauseTimeout = setTimeout(() => {
+              directionRef.current = -1;
+              // Add a short gap before starting reverse animation
+              setTimeout(() => {
+                pausingRef.current = false;
+                setIsPausingAtEnd(false);
+              }, 800); // Longer delay before starting reverse animation
+            }, 200);
           }, 3500);
         } 
         else if (newProgress <= 0 && directionRef.current < 0) {
@@ -86,12 +89,12 @@ const App: React.FC = () => {
           pausingRef.current = true;
           setIsPausingAtEnd(true);
           
-          // Schedule direction change
+          // Schedule direction change with smoother transition
           pauseTimeout = setTimeout(() => {
             directionRef.current = 1;
             pausingRef.current = false;
             setIsPausingAtEnd(false);
-          }, 1000);
+          }, 1200); // Longer pause at 0%
         }
       }
       
@@ -213,7 +216,7 @@ const App: React.FC = () => {
             isPaused={isPausingAtEnd}
             animationSpeed={speed} // Will now always be 0.5
             // Change the instantFill logic - ensure it stays visible
-            instantFill={progress >= 99} // Always use instantFill for values near 100%
+            instantFill={progress >= 99.5} // Only use instantFill at exactly 100%
             onAnimationComplete={() => console.log('Animation completed!')}
             customColors={{
               primary: '#ff4500',
