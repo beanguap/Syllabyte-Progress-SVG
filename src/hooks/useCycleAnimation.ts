@@ -30,6 +30,7 @@ export function useCycleAnimation(options: CycleAnimationOptions): CycleAnimatio
   const previousTimeRef = useRef<number | null>(null);
   const directionRef = useRef<number>(1);
   const progressRef = useRef<number>(0);
+  const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   useEffect(() => {
     const animate = (time: number) => {
@@ -60,7 +61,7 @@ export function useCycleAnimation(options: CycleAnimationOptions): CycleAnimatio
           setProgress(100);
           
           // Schedule reversal after pause
-          setTimeout(() => {
+          pauseTimeoutRef.current = setTimeout(() => {
             directionRef.current = -1;
             setIsReversed(true);
             setIsPaused(false);
@@ -83,6 +84,9 @@ export function useCycleAnimation(options: CycleAnimationOptions): CycleAnimatio
     return () => {
       if (requestRef.current !== null) {
         cancelAnimationFrame(requestRef.current);
+      }
+      if (pauseTimeoutRef.current !== null) {
+        clearTimeout(pauseTimeoutRef.current);
       }
     };
   }, [speed, pauseAtPeakMs, isPaused]);

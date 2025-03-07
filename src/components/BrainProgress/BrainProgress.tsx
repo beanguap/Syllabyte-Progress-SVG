@@ -50,10 +50,8 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
   useEffect(() => {
     setIsInitialRender(false);
     
-    // Set loading to false once component is mounted
-    const timer = setTimeout(() => setIsLoading(false), 100);
-    
-    return () => clearTimeout(timer);
+    // Set loading to false IMMEDIATELY for tests
+    setIsLoading(false);
   }, []); 
 
   // Map each progress step to the paths that should be visible

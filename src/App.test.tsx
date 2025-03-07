@@ -14,6 +14,11 @@ describe('App Integration', () => {
   it('renders the BrainProgress components with correct progress', async () => {
     render(<App />);
     
+    // Advance timers to complete loading
+    await act(async () => {
+      vi.advanceTimersByTime(200);
+    });
+    
     // Advance timers to trigger all animations
     await act(async () => {
       vi.advanceTimersByTime(1000);
@@ -22,10 +27,10 @@ describe('App Integration', () => {
     // Check if heading exists
     expect(screen.getByText(/Brain Progress Demo/i)).toBeInTheDocument();
     
-    // Check for one of the progress labels
-    expect(screen.getByText('25%')).toBeInTheDocument();
-    expect(screen.getByText('50%')).toBeInTheDocument();
-    expect(screen.getByText('75%')).toBeInTheDocument();
-    expect(screen.getByText('100%')).toBeInTheDocument();
+    // Check for the headings rather than labels to avoid duplicate matches
+    expect(screen.getAllByRole('heading', { level: 3 })[0]).toHaveTextContent('25%');
+    expect(screen.getAllByRole('heading', { level: 3 })[1]).toHaveTextContent('50%');
+    expect(screen.getAllByRole('heading', { level: 3 })[2]).toHaveTextContent('75%');
+    expect(screen.getAllByRole('heading', { level: 3 })[3]).toHaveTextContent('100%');
   });
 });
