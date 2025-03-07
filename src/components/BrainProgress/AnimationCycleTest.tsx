@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import BrainProgress from './BrainProgress';
 import { useCycleAnimation } from '../../hooks/useCycleAnimation';
 import './BrainProgress.css';
@@ -6,15 +6,29 @@ import './BrainProgress.css';
 /**
  * AnimationCycleTest Component
  * 
- * Demonstrates a continuous fill and drain animation cycle for BrainProgress.
- * The brain fills from 0% to 100%, pauses briefly, then drains back to 0%.
+ * Demonstrates a continuous fill-drain animation cycle for BrainProgress.
+ * The brain fills from 0% to 100%, then drains back to 0%.
  */
 const AnimationCycleTest: React.FC = () => {
+  // Detect test environment
+  const isTestEnvironment = process.env.NODE_ENV === 'test';
+  
   // Use the custom hook for cycle animation with configured speed and pause duration
-  const { progress, isReversed, isPaused } = useCycleAnimation({
-    speed: 100, // Fast animation speed as requested (100 units per second)
-    pauseAtPeakMs: 1000, // 1 second pause at 100%
+  const { progress, isReversed } = useCycleAnimation({
+    speed: 20, // Reduced from 100 to 25 for a more visible animation
+    pauseAtPeakMs: 0, // No pause at peak
+    testMode: isTestEnvironment // Enable test mode in test environment
   });
+  
+  // Add debugging to help track what's happening
+  useEffect(() => {
+    if (progress >= 99) {
+      console.log('Reached peak, should reverse soon');
+    }
+    if (isReversed && progress <= 1) {
+      console.log('Reached bottom, should start filling again');
+    }
+  }, [progress, isReversed]);
   
   return (
     <div className="animation-test" data-reverse={isReversed ? "true" : "false"}>
@@ -26,7 +40,7 @@ const AnimationCycleTest: React.FC = () => {
           maxValue={100}
           showLabel={true}
           reverse={isReversed}
-          isPaused={isPaused}
+          isPaused={false} // Never paused
           animationSpeed={0.3} // Keep animation smooth
           customColors={{
             primary: '#06c9a1',
@@ -38,7 +52,14 @@ const AnimationCycleTest: React.FC = () => {
       <div>
         <p>Current progress: {progress.toFixed(1)}%</p>
         <p>Direction: {isReversed ? '⬇️ Draining' : '⬆️ Filling'}</p>
-        <p>Status: {isPaused ? 'Paused' : 'Animating'}</p>
+        <p>Status: Animating</p> {/* Always animating */}
+        
+        {/* Debug info */}
+        <p className="debug-info" style={{ fontSize: '0.8rem', color: '#666' }}>
+          State: {isReversed ? 'reverse' : 'forward'}, running
+          {progress >= 99 ? ', at peak' : ''}
+          {progress <= 1 ? ', at bottom' : ''}
+        </p>
       </div>
     </div>
   );

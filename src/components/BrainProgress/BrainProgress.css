@@ -465,3 +465,53 @@
   border-radius: 4px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
 }
+
+/* Improve transition for paused to draining state */
+.animation-test .brain-progress-container[data-paused="false"][data-reverse="true"] .brain-path {
+  transition-delay: 0s !important; /* Ensure immediate transition after unpausing */
+  transition-duration: 0.4s !important; /* Quick transition for drain start */
+}
+
+/* Make sure pause state is correctly handled */
+.animation-test .brain-progress-container[data-paused="true"] {
+  opacity: 0.95; /* Subtle visual indication of pause */
+}
+
+/* Smooth transition from pause to drain */
+.animation-test .brain-progress-container[data-paused="true"] + div p:last-child {
+  font-weight: bold;
+  color: #06c9a1;
+}
+
+/* Debug info styling */
+.animation-test .debug-info {
+  background-color: rgba(0, 0, 0, 0.05);
+  font-family: monospace;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-top: 10px;
+  border-left: 3px solid #007afc;
+}
+
+/* Specific fix for pause-to-drain transition */
+.animation-test .brain-progress-container[data-paused="false"][data-reverse="true"] .brain-path {
+  transition: all 0.3s linear !important;
+}
+
+/* Ensure paused state at 100% is highly visible */
+.animation-test .brain-progress-container[data-paused="true"][data-progress="100"] .brain-path {
+  opacity: 1 !important;
+  fill-opacity: 1 !important;
+  stroke-dashoffset: 0 !important;
+}
+
+/* Helpful indicator for state changes */
+.animation-test .brain-progress-container[data-paused="true"] + div p:nth-child(3) {
+  background-color: rgba(6, 201, 161, 0.2);
+  font-weight: bold;
+}
+
+.animation-test .brain-progress-container[data-reverse="true"] + div p:nth-child(2) {
+  background-color: rgba(255, 99, 71, 0.2);
+  font-weight: bold;
+}
