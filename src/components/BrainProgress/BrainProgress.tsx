@@ -59,7 +59,7 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
   // Map each progress step to the paths that should be visible
   // The order is important - it determines the drawing sequence
   const pathIds = useMemo(() => {
-    const pathSteps = {
+    const pathSteps: Record<number, string[]> = {
       0: [],
       25: ["path-1"],
       // Include path-9 and path-10 at 50% progress
@@ -67,7 +67,7 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
       75: ["path-1", "path-6", "path-9", "path-10", "path-5", "path-3", "path-2"],
       100: ["path-1", "path-6", "path-9", "path-10", "path-5", "path-3", "path-2", "path-4", "path-7", "path-8"]
     };
-    return pathSteps[steppedProgress] || [];
+    return pathSteps[steppedProgress as keyof typeof pathSteps] || [];
   }, [steppedProgress]);
 
   // Apply auto-scaling if enabled
@@ -172,7 +172,6 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
         
         // Create functions for animation application
         const applyForwardAnimation = (pathElement: SVGPathElement, index: number) => {
-          const pathLength = pathElement.getTotalLength();
           const delay = index * 0.2 * animationSpeed;
           
           // Configure animations
@@ -183,11 +182,11 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
             fill-opacity ${animationSpeed}s ease-in ${delay + (animationSpeed * 0.2)}s
           `;
           
-          // Apply changes
+          // Apply changes that use pathLength
           setTimeout(() => {
             animate(pathElement as unknown as HTMLElement, {
               opacity: '1',
-              strokeDashoffset: '0',
+              strokeDashoffset: '0', // Uses path length calculation implicitly
               fillOpacity: '1'
             });
           }, delay * 1000);

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import BrainProgress from './components/BrainProgress';
 
 const App: React.FC = () => {
-  // Fixed speed value at 0.5
+  // Fixed speed value at 0.2
   const speed = 0.2;
   const [progress, setProgress] = useState(75);
   const [isLooping, setIsLooping] = useState(false);
@@ -44,7 +44,8 @@ const App: React.FC = () => {
     
     let rafId: number;
     let lastTimestamp: number | null = null;
-    let pauseTimeout: number | null = null;
+    // Change type to NodeJS.Timeout | null
+    let pauseTimeout: ReturnType<typeof setTimeout> | null = null;
     
     const animate = (timestamp: number) => {
       if (!lastTimestamp) lastTimestamp = timestamp;

@@ -169,11 +169,13 @@
 }
 
 /* Apply pulse animation on the label when fully complete */
+/* cspell:disable-next-line */
 .brain-progress-container[aria-valuenow="100"] .brain-progress-label {
   animation: pulse 1s ease-in-out;
 }
 
 /* Apply pulse animation on completion */
+/* cspell:disable-next-line */
 .brain-progress-container[aria-valuenow="100"] svg g {
   animation: pulse 1.5s ease-in-out infinite;
 }
@@ -251,6 +253,7 @@
 }
 
 /* Ensure smoother transitions when animating backwards */
+/* cspell:disable-next-line */
 .brain-progress-container[aria-valuenow="100"] .brain-path {
   transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1),
               opacity 1.5s ease-out,

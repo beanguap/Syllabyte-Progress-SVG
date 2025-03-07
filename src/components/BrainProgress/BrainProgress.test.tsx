@@ -1,5 +1,5 @@
 import { render, screen, act } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import BrainProgress from './BrainProgress';
 
 describe('BrainProgress', () => {
@@ -211,7 +211,7 @@ describe('BrainProgress', () => {
       disconnect: vi.fn()
     };
     
-    // @ts-ignore - Mock implementation
+  
     window.ResizeObserver = vi.fn(() => resizeObserverInstance);
     
     expect(container.querySelector('.brain-progress-container')).toBeInTheDocument();
