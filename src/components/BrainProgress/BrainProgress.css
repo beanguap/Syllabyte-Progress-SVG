@@ -328,3 +328,140 @@
 [data-reverse="true"] .brain-path {
   transition-duration: 0.6s, 0.8s, 1s !important;
 }
+
+/* Add this new section for continuous animation cycle */
+.animation-test .brain-path {
+  /* Optimize transitions for continuous animation */
+  transition-timing-function: linear !important;
+}
+
+/* Ensure smoother transitions between fill and drain */
+.animation-test [data-reverse="true"] .brain-path {
+  transition-duration: 0.3s, 0.4s, 0.5s !important;
+}
+
+/* Prevent flashing during animation cycle */
+/* cspell:disable-next-line */
+.animation-test .brain-progress-container[aria-valuenow="100"] .brain-path,
+/* cspell:disable-next-line */
+.animation-test .brain-progress-container[aria-valuenow="0"] .brain-path {
+  transition-duration: 0.1s !important;
+}
+
+/* Make the pulse subtler for continuous animation */
+/* cspell:disable-next-line */
+.animation-test .brain-progress-container[aria-valuenow="100"] svg g {
+  animation: pulse 0.8s ease-in-out;
+  animation-iteration-count: 1; /* Only pulse once at 100% */
+}
+
+/* Additional style for animation test container */
+.animation-test {
+  background: linear-gradient(to bottom right, rgba(6, 201, 161, 0.1), rgba(0, 122, 252, 0.1));
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.animation-test h2 {
+  margin-top: 0;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Optimize existing animations for smoother cycle */
+@keyframes cycleFillIn {
+  0% {
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length, 0);
+  }
+  40% {
+    fill-opacity: 0.4;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.6);
+  }
+  70% {
+    fill-opacity: 0.7;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.3);
+  }
+  100% {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes cycleDrainOut {
+  0% {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+  40% {
+    fill-opacity: 0.6;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.4);
+  }
+  70% {
+    fill-opacity: 0.3;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.7);
+  }
+  100% {
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length, 0);
+  }
+}
+
+/* Apply cycle-specific animations */
+.animation-test .brain-path {
+  animation: none !important; /* Override default animations */
+}
+
+.animation-test [data-reverse="false"] .brain-path {
+  animation: cycleFillIn 0.5s linear forwards !important;
+}
+
+.animation-test [data-reverse="true"] .brain-path {
+  animation: cycleDrainOut 0.5s linear forwards !important;
+}
+
+/* Add these animation styles specifically for the animation cycle */
+
+/* Fine-tuned animation for the continuous cycle */
+@keyframes cycleProgress {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+/* Add styles to make transitions smoother during the cycle */
+.animation-test .brain-progress-container {
+  transition: all 0.3s ease-out;
+}
+
+/* Customize label appearance during cycle */
+.animation-test .brain-progress-label {
+  background-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Optimize animations specifically for the cycle component */
+.animation-test .brain-path {
+  transition-duration: 0.2s, 0.3s, 0.4s !important;
+  transition-timing-function: linear !important;
+}
+
+/* Add a subtle animation when direction changes */
+.animation-test[data-reverse="true"] .brain-progress-container {
+  animation: cycleProgress 0.4s ease-out;
+}
+
+/* Ensure paths don't flash between fill and drain */
+.animation-test .brain-path.persistent {
+  transition-duration: 0.1s !important;
+}
+
+/* Style the control indicators */
+.animation-test p {
+  margin: 5px 0;
+  padding: 5px 8px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+}

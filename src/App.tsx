@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import BrainProgress from './components/BrainProgress';
+// Use the barrel import instead
+import { BrainProgress, AnimationCycleTest } from './components/BrainProgress';
 
 const App: React.FC = () => {
   // Fixed speed value at 0.2
@@ -132,6 +133,17 @@ const App: React.FC = () => {
   return (
     <div style={{ padding: '20px' }}>
       <h1>Brain Progress Demo</h1>
+      
+      {/* Add the continuous animation test */}
+      <div style={{ 
+        padding: '20px', 
+        marginBottom: '20px',
+        borderRadius: '8px', 
+        backgroundColor: '#f0f8ff', 
+        maxWidth: '800px' 
+      }}>
+        <AnimationCycleTest />
+      </div>
       
       {/* Progress states */}
       <div style={{ display: 'flex', gap: '2rem' }}>
