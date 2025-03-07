@@ -3,10 +3,12 @@ import BrainProgress from './components/BrainProgress';
 
 const App: React.FC = () => {
   // Fixed speed value at 0.5
-  const speed = 0.2; // Removed useState and setSpeed since it's now fixed
+  const speed = 0.2;
   const [progress, setProgress] = useState(75);
   const [isLooping, setIsLooping] = useState(false);
   const [isPausingAtEnd, setIsPausingAtEnd] = useState(false);
+  // Add a new state to track animation direction
+  const [isReversed, setIsReversed] = useState(false);
   
   // Use refs to avoid re-renders and effect dependencies
   const progressRef = useRef(progress);
@@ -38,6 +40,7 @@ const App: React.FC = () => {
     directionRef.current = 1;
     pausingRef.current = false;
     setIsPausingAtEnd(false);
+    setIsReversed(false); // Reset reverse state
     
     let rafId: number;
     let lastTimestamp: number | null = null;
@@ -70,18 +73,17 @@ const App: React.FC = () => {
           // Force the brain to show as fully filled
           setProgress(100);
           
-          // FIX: Use longer pause at 100% for better visual effect
+          // Use longer pause at 100% for better visual effect
           pauseTimeout = setTimeout(() => {
-            // Don't immediately change direction on exact frame - add a small delay
+            directionRef.current = -1;
+            setIsReversed(true); // Set reversed flag BEFORE unpausing
+            
+            // Add a short gap before starting reverse animation
             pauseTimeout = setTimeout(() => {
-              directionRef.current = -1;
-              // Add a short gap before starting reverse animation
-              setTimeout(() => {
-                pausingRef.current = false;
-                setIsPausingAtEnd(false);
-              }, 800); // Longer delay before starting reverse animation
-            }, 200);
-          }, 3500);
+              pausingRef.current = false;
+              setIsPausingAtEnd(false);
+            }, 500); // Shorter delay for smoother transition
+          }, 2000); // Keep the pause at the 100% point
         } 
         else if (newProgress <= 0 && directionRef.current < 0) {
           progressRef.current = 0;
@@ -92,9 +94,13 @@ const App: React.FC = () => {
           // Schedule direction change with smoother transition
           pauseTimeout = setTimeout(() => {
             directionRef.current = 1;
-            pausingRef.current = false;
-            setIsPausingAtEnd(false);
-          }, 1200); // Longer pause at 0%
+            setIsReversed(false); // Reset reversed flag BEFORE unpausing
+            
+            pauseTimeout = setTimeout(() => {
+              pausingRef.current = false;
+              setIsPausingAtEnd(false);
+            }, 500); // Shorter delay for smoother transition
+          }, 1200); // Pause at 0%
         }
       }
       
@@ -118,6 +124,7 @@ const App: React.FC = () => {
     if (progress === 100 && !isLooping) {
       pausingRef.current = true;
       setIsPausingAtEnd(true);
+      setIsReversed(false); // Reset reverse state for manual setting
     }
   }, [progress, isLooping]);
 
@@ -196,8 +203,6 @@ const App: React.FC = () => {
               </button>
             </div>
             
-            {/* Removed the speed slider section */}
-            
             <div>
               <label htmlFor="progress" style={{ display: 'block', marginBottom: '5px' }}>
                 Progress: {Math.round(progress)}%
@@ -224,7 +229,9 @@ const App: React.FC = () => {
             height="300px"
             isPaused={isPausingAtEnd}
             animationSpeed={speed}
-            // Modified to ensure 100% always shows correctly - handle the specifics in the component
+            // Pass the isReversed state to control animation direction
+            reverse={isReversed}
+            // Modified to ensure 100% always shows correctly
             instantFill={!isLooping || progress === 100}
             onAnimationComplete={() => console.log('Animation completed!')}
             customColors={{
@@ -234,16 +241,31 @@ const App: React.FC = () => {
           />
           
           {/* Status indicator */}
-          {isPausingAtEnd && progress === 100 && (
+          {isPausingAtEnd && (
             <div style={{
               marginTop: '10px',
               padding: '5px',
-              backgroundColor: 'rgba(6, 201, 161, 0.2)',
+              backgroundColor: progress === 100 ? 'rgba(6, 201, 161, 0.2)' : 'rgba(255, 69, 0, 0.2)',
               borderRadius: '4px',
               textAlign: 'center',
               fontWeight: 'bold'
             }}>
-              Showing fully animated brain (100%)
+              {progress === 100 
+                ? 'Showing fully animated brain (100%)' 
+                : `Animation paused at ${progress}%`}
+            </div>
+          )}
+
+          {/* Add direction indicator */}
+          {isLooping && (
+            <div style={{
+              marginTop: '10px',
+              padding: '5px',
+              backgroundColor: 'rgba(0, 122, 252, 0.2)',
+              borderRadius: '4px',
+              textAlign: 'center',
+            }}>
+              Direction: {isReversed ? '⬇️ Decreasing' : '⬆️ Increasing'}
             </div>
           )}
         </div>

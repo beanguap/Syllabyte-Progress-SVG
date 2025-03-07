@@ -204,6 +204,32 @@
   }
 }
 
+/* Add specific styling for reverse animation */
+@keyframes reversePathFill {
+  from {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    fill-opacity: 0.2;
+  }
+  to {
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length, 0);
+  }
+}
+
+/* Add data-attribute styling for reverse animation */
+[data-reverse="true"] .brain-path {
+  transition-timing-function: ease-out !important;
+}
+
+/* Improve transition timing for disappearing paths */
+.brain-path.disappearing {
+  animation: reversePathFill 1.2s ease-out forwards !important;
+  transition: opacity 0.8s ease-out, fill-opacity 1s ease-out !important;
+}
+
 /* Improve animation for path disappearance */
 @keyframes fadeOut {
   0% { 
@@ -243,4 +269,59 @@
   opacity: 1 !important;
   fill-opacity: 1 !important;
   stroke-dashoffset: 0 !important;
+}
+
+/* Enhance reverse animations */
+[data-reverse="true"] .brain-path {
+  transition-timing-function: ease-out !important;
+}
+
+/* Enhanced reverse fill animation */
+@keyframes reversePathFill {
+  0% {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+  30% {
+    fill-opacity: 0.8;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.2);
+  }
+  70% {
+    fill-opacity: 0.3;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.7);
+  }
+  100% {
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length, 0);
+  }
+}
+
+/* Enhanced forward fill animation */
+@keyframes fillIn {
+  0% {
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length, 0);
+  }
+  50% {
+    fill-opacity: 0.4;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.5);
+  }
+  80% {
+    fill-opacity: 0.8;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.1);
+  }
+  100% {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Apply reverse animation when needed */
+[data-reverse="true"] .brain-path.disappearing {
+  animation: reversePathFill 0.8s ease-out forwards !important;
+}
+
+/* Make reverse transitions more pronounced */
+[data-reverse="true"] .brain-path {
+  transition-duration: 0.6s, 0.8s, 1s !important;
 }

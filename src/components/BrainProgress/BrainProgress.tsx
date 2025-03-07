@@ -18,7 +18,7 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
   autoScale = false,
   onAnimationComplete,
   fallback = <div className="brain-progress-loading">Loading...</div>,
-  instantFill = false // Add default value
+  instantFill = false
 }) => {
   // Calculate raw progress and clamp to [0,100]
   const rawProgress = useMemo(() => {
@@ -107,6 +107,9 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
         // Set CSS custom property for path length
         path.style.setProperty('--path-length', `${pathLength}px`);
         
+        // Remove any previous disappearing classes
+        path.classList.remove('disappearing');
+        
         // Always treat 100% progress as instant fill to prevent disappearing paths
         if (instantFill || isFullProgress) {
           // For instant fill, set initial state based on visibility
@@ -126,13 +129,7 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
             path.classList.remove('persistent');
           }
         } else {
-          // Apply initial animation state using CSS custom properties
-          animate(path as unknown as HTMLElement, {
-            strokeDasharray: `${pathLength}px`,
-            strokeDashoffset: `${pathLength}px`,
-            opacity: '0',
-            fillOpacity: '0'
-          });
+          // We'll handle initial state in the animation logic below
         }
       });
       
@@ -149,86 +146,157 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
         if (onAnimationComplete) {
           onAnimationComplete();
         }
-      } else if (!instantFill && !isFullProgress) {
-        // Continue with existing animation logic for non-100% states
-        if (!instantFill) {
-          // Animate visible paths
-          const animationSequence = reverse ? [...pathIds].reverse() : pathIds;
+      } else if (!instantFill) {
+        // Determine previous stepped progress from previous paths
+        const prevSteppedProgress = prevPathsRef.current.length === 0 ? 0 : 
+                                  prevPathsRef.current.length <= 1 ? 25 :
+                                  prevPathsRef.current.length <= 4 ? 50 :
+                                  prevPathsRef.current.length <= 7 ? 75 : 100;
+        
+        // Determine if we're decreasing in progress
+        const isDecreasing = steppedProgress < prevSteppedProgress;
+        
+        // Get the correct animation sequence based on direction
+        const animationSequence = pathIds;
+        
+        // Store current and previous paths
+        const currentVisiblePaths = new Set(animationSequence);
+        const previousVisiblePaths = new Set(prevPathsRef.current);
+        
+        // Find paths that need to be added or removed
+        const pathsToRemove = [...previousVisiblePaths].filter(id => !currentVisiblePaths.has(id));
+        const pathsToAdd = [...currentVisiblePaths].filter(id => !previousVisiblePaths.has(id));
+        
+        // Update reference for next render
+        prevPathsRef.current = [...animationSequence];
+        
+        // Create functions for animation application
+        const applyForwardAnimation = (pathElement: SVGPathElement, index: number) => {
+          const pathLength = pathElement.getTotalLength();
+          const delay = index * 0.2 * animationSpeed;
           
-          // IMPORTANT FIX: Store previous paths to ensure smooth transitions
-          const currentVisiblePaths = new Set(animationSequence);
-          const previousVisiblePaths = new Set(prevPathsRef.current);
+          // Configure animations
+          pathElement.style.animation = `fillIn ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s forwards`;
+          pathElement.style.transition = `
+            stroke-dashoffset ${animationSpeed}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s,
+            opacity ${animationSpeed * 0.6}s ease-in ${delay * 0.8}s,
+            fill-opacity ${animationSpeed}s ease-in ${delay + (animationSpeed * 0.2)}s
+          `;
           
-          // Create a merged set that includes both current and previous paths
-          // This prevents the flash by ensuring we transition paths out smoothly
-          const transitionPaths = new Set([...currentVisiblePaths, ...previousVisiblePaths]);
+          // Apply changes
+          setTimeout(() => {
+            animate(pathElement as unknown as HTMLElement, {
+              opacity: '1',
+              strokeDashoffset: '0',
+              fillOpacity: '1'
+            });
+          }, delay * 1000);
+        };
+        
+        const applyReverseAnimation = (pathElement: SVGPathElement, index: number) => {
+          const pathLength = pathElement.getTotalLength();
+          const delay = index * 0.15 * animationSpeed;
           
-          // Update reference for next direction change
-          prevPathsRef.current = [...animationSequence];
+          // Add the disappearing class to enable the reverse animation
+          pathElement.classList.add('disappearing');
           
-          // Process all paths that need transitions (both appearing and disappearing)
-          Array.from(transitionPaths).forEach((pathId, idx) => {
-            const pathElement = svgRef.current?.querySelector(`#${pathId}`) as SVGPathElement;
+          // Configure reverse animations
+          pathElement.style.animation = `reversePathFill ${animationSpeed}s ease-out ${delay}s forwards`;
+          pathElement.style.transition = `
+            stroke-dashoffset ${animationSpeed * 0.8}s ease-out ${delay}s,
+            opacity ${animationSpeed * 0.6}s ease-out ${delay * 1.1}s,
+            fill-opacity ${animationSpeed * 0.7}s ease-out ${delay}s
+          `;
+          
+          // Apply changes
+          setTimeout(() => {
+            animate(pathElement as unknown as HTMLElement, {
+              opacity: '0',
+              strokeDashoffset: `${pathLength}px`,
+              fillOpacity: '0'
+            });
+          }, delay * 1000);
+        };
+        
+        if (!isPaused) {
+          // CRUCIAL FIX: Handle reverse animation differently
+          if (reverse || isDecreasing) {
+            // For reverse animation, paths to remove should animate out first
+            pathsToRemove.forEach((pathId, idx) => {
+              const path = svgRef.current?.querySelector(`#${pathId}`) as SVGPathElement;
+              if (path) {
+                applyReverseAnimation(path, idx);
+              }
+            });
             
-            if (pathElement) {
-              const isCurrentlyVisible = currentVisiblePaths.has(pathId);
-              const wasVisible = previousVisiblePaths.has(pathId);
-              
-              if (!isPaused) {
-                const pathLength = pathElement.getTotalLength();
-                // Adjust delay based on path position and direction
-                const delay = idx * 0.3 * animationSpeed;
+            // Paths that remain visible should stay visible
+            [...currentVisiblePaths].forEach((pathId) => {
+              const path = svgRef.current?.querySelector(`#${pathId}`) as SVGPathElement;
+              if (path) {
+                path.style.opacity = '1';
+                path.style.fillOpacity = '1';
+                path.style.strokeDashoffset = '0';
+              }
+            });
+            
+            // Only after a delay, animate new paths in
+            if (pathsToAdd.length > 0) {
+              setTimeout(() => {
+                pathsToAdd.forEach((pathId, idx) => {
+                  const path = svgRef.current?.querySelector(`#${pathId}`) as SVGPathElement;
+                  if (path) {
+                    applyForwardAnimation(path, idx);
+                  }
+                });
+              }, 300); // Small delay for better sequencing
+            }
+          } else {
+            // For forward animation
+            // First animate out paths that are disappearing
+            pathsToRemove.forEach((pathId, idx) => {
+              const path = svgRef.current?.querySelector(`#${pathId}`) as SVGPathElement;
+              if (path) {
+                const pathLength = path.getTotalLength();
+                const delay = idx * 0.1 * animationSpeed;
                 
-                // FIX: Improved transition handling to prevent flash
-                // When path needs to disappear (was visible but now isn't)
-                if (wasVisible && !isCurrentlyVisible) {
-                  // For disappearing paths, increase transition duration and stagger timing
-                  const fadeOutDelay = reverse ? delay * 0.5 : (animationSequence.length - idx) * 0.15 * animationSpeed;
-                  
-                  // Ensure smoother fade out
-                  pathElement.style.transition = `
-                    stroke-dashoffset ${animationSpeed * 1.8}s cubic-bezier(0.4, 0, 0.2, 1) ${fadeOutDelay}s,
-                    opacity ${animationSpeed * 1.5}s ease-out ${fadeOutDelay}s,
-                    fill-opacity ${animationSpeed * 2.0}s ease-out ${fadeOutDelay * 0.8}s
-                  `;
-                  
-                  // CRITICAL FIX: Maintain visibility longer before fading out
-                  // This prevents the flash by creating an overlap between states
-                  setTimeout(() => {
-                    animate(pathElement as unknown as HTMLElement, {
-                      opacity: '0',
-                      fillOpacity: '0',
-                      strokeDashoffset: `${pathLength}px`
-                    }, 0);
-                  }, fadeOutDelay * 1000);
-                }
-                // For appearing paths or paths that stay visible
-                else if (isCurrentlyVisible) {
-                  pathElement.style.animation = `fillIn ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s ${reverse ? 'reverse' : 'forwards'}`;
-                  pathElement.style.transition = `
-                    stroke-dashoffset ${animationSpeed * 1.2}s cubic-bezier(0.4, 0, 0.2, 1) ${delay}s,
-                    opacity ${animationSpeed * 0.8}s ease-in ${delay * 0.8}s,
-                    fill-opacity ${animationSpeed * 1.5}s ease-in ${delay + (animationSpeed * 0.3)}s
-                  `;
-                  
-                  // Always set opacity to 1 for currently visible paths
-                  animate(pathElement as unknown as HTMLElement, { opacity: '1' }, delay);
-                  
-                  // Animate stroke and fill
-                  animate(pathElement as unknown as HTMLElement, {
-                    strokeDashoffset: reverse ? `${pathLength}px` : '0px',
-                    fillOpacity: reverse ? '0' : '1'
-                  }, delay);
-                }
+                path.style.transition = `
+                  opacity ${animationSpeed * 0.8}s ease-out ${delay}s,
+                  fill-opacity ${animationSpeed}s ease-out ${delay}s,
+                  stroke-dashoffset ${animationSpeed * 1.2}s ease-out ${delay}s
+                `;
                 
-                // Call the completion callback after the last animation finishes
-                if (isCurrentlyVisible && idx === animationSequence.length - 1 && onAnimationComplete) {
-                  setTimeout(() => onAnimationComplete(), 
-                    (delay + animationSpeed * 1.5) * 1000);
+                setTimeout(() => {
+                  animate(path as unknown as HTMLElement, {
+                    opacity: '0',
+                    fillOpacity: '0',
+                    strokeDashoffset: `${pathLength}px`
+                  });
+                }, delay * 1000);
+              }
+            });
+            
+            // Then animate in paths that are appearing
+            [...currentVisiblePaths].forEach((pathId, idx) => {
+              const path = svgRef.current?.querySelector(`#${pathId}`) as SVGPathElement;
+              if (path) {
+                // Only animate if it's a new path or preserve if already visible
+                if (pathsToAdd.includes(pathId)) {
+                  applyForwardAnimation(path, idx);
+                } else {
+                  path.style.opacity = '1';
+                  path.style.fillOpacity = '1';
+                  path.style.strokeDashoffset = '0';
                 }
               }
-            }
-          });
+            });
+          }
+          
+          // Call the completion callback
+          if (onAnimationComplete && pathIds.length > 0) {
+            const lastPathDelay = (pathIds.length - 1) * 0.3 * animationSpeed;
+            setTimeout(onAnimationComplete, 
+              (lastPathDelay + animationSpeed * 1.5) * 1000);
+          }
         }
       }
     }
@@ -246,12 +314,13 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
       ref={containerRef}
       className="brain-progress-container"
       style={{ width, height }}
-      role="progressbar"
+      role="progressbar" 
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={displayProgress}
       data-progress={steppedProgress}
       data-paused={isPaused ? 'true' : 'false'}
+      data-reverse={reverse ? 'true' : 'false'}
     >
       <svg 
         ref={svgRef}
