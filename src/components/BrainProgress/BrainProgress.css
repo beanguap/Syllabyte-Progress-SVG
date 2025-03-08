@@ -753,3 +753,30 @@
   animation-delay: 0s !important;
   animation-duration: 0.8s !important;
 }
+
+/* Add these rules after line 680 in your CSS file */
+
+/* CRITICAL FIX: Reset animation state when transitioning from paused at 100% to draining */
+.animation-test .brain-progress-container[data-progress="100"][data-paused="false"][data-reverse="true"] .brain-path {
+  /* Force animation to immediately begin draining from full state */
+  animation: cyclePathDrain 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  transition: none !important;
+  opacity: 1 !important;
+  fill-opacity: 1 !important;
+  stroke-dashoffset: 0 !important;
+  will-change: stroke-dashoffset, opacity, fill-opacity;
+}
+
+/* Override any conflicting rules to ensure drain animation runs */
+.animation-test .brain-progress-container[data-reverse="true"] .brain-path {
+  animation-play-state: running !important;
+  animation-delay: 0s !important;
+  stroke-width: 3.8px !important;
+}
+
+/* Improve transition from pause state */
+.animation-test .brain-progress-container[data-paused="true"] .brain-path {
+  /* Use transition-delay instead of animation-play-state for smoother unpause */
+  transition-delay: 0s !important;
+  transition-duration: 0.2s !important;
+}
