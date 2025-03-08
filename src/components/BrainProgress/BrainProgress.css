@@ -12,7 +12,7 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
 }
 
-/* Add paused state styles */
+/* Remove unnecessary transitions for better performance */
 [data-paused="true"] .brain-path {
   animation-play-state: paused !important;
   transition: none !important;
@@ -22,7 +22,6 @@
 [data-paused="true"][data-progress="100"] .brain-path {
   opacity: 1 !important;
   fill-opacity: 1 !important;
-  stroke-dashoffset: 0 !important;
   transition: none !important;
 }
 
@@ -42,23 +41,35 @@
   overflow: visible; /* Allow paths to extend beyond SVG boundaries */
 }
 
-/* Brain path base styling */
+/* Brain path base styling - optimized for performance */
 .brain-path {
   opacity: 0; /* Start hidden */
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 4px;
-  fill: url(#brain-gradient); /* Enable gradient fill */
-  transform-origin: center;
-  /* Enhanced animation properties */
-  stroke-dasharray: var(--path-length, 0);
-  stroke-dashoffset: var(--path-length, 0);
-  /* Improved transition properties with longer durations */
-  transition-property: stroke-dashoffset, opacity, fill-opacity;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: stroke-dashoffset, opacity, fill-opacity;
-  /* Longer opacity transitions to prevent flash */
-  transition-duration: 0.8s, 1.2s, 1.5s;
+  fill-opacity: 0; /* Start with transparent fill */
+  stroke-width: 0; /* No stroke for better performance */
+  will-change: opacity, fill-opacity; /* Hint for browser optimization */
+}
+
+/* Animation Cycle Example Styles - simplified */
+.animation-cycle-example .brain-path {
+  opacity: 0;
+  fill-opacity: 0;
+}
+
+/* Style for the percentage label container */
+.brain-progress-label {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Stem path styling (path-1) - ensure it's visible first */
@@ -113,24 +124,6 @@
   outline: 3px solid #007afc;
   outline-offset: 2px;
   border-radius: 5px;
-}
-
-/* Style for the percentage label container */
-.brain-progress-label {
-  position: absolute;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(255, 255, 255, 0.7);
-  border-radius: 50%;
-  width: 80px;
-  height: 80px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #333;
-  text-align: center;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
 }
 
 /* Style for the percentage label container (which is the <g> element in the SVG) */

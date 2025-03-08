@@ -17,4 +17,5 @@ export interface BrainProgressProps {
   onAnimationComplete?: () => void; // Animation completion callback
   fallback?: React.ReactNode; // Content to show while loading
   instantFill?: boolean; // Add this new prop
+  autoplay?: boolean; // Auto-fill and drain continuously as a loading indicator
 }

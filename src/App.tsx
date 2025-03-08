@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-// Use the barrel import instead
-import { BrainProgress, AnimationCycleTest } from './components/BrainProgress';
+// Use the updated component names
+import { BrainProgress, AnimationCycleExample } from './components/BrainProgress';
 
 const App: React.FC = () => {
   // Fixed speed value at 0.2
@@ -134,7 +134,7 @@ const App: React.FC = () => {
     <div style={{ padding: '20px' }}>
       <h1>Brain Progress Demo</h1>
       
-      {/* Add the continuous animation test */}
+      {/* Optimized continuous animation without controls */}
       <div style={{ 
         padding: '20px', 
         marginBottom: '20px',
@@ -142,147 +142,15 @@ const App: React.FC = () => {
         backgroundColor: '#f0f8ff', 
         maxWidth: '800px' 
       }}>
-        <AnimationCycleTest />
+        <h3>Continuous Animation (No Controls)</h3>
+        <AnimationCycleExample 
+          width={400}
+          height={300}
+          animationSpeed={1.2}
+        />
       </div>
       
-      {/* Progress states */}
-      <div style={{ display: 'flex', gap: '2rem' }}>
-        <div>
-          <h3>25%</h3>
-          <BrainProgress 
-            value={25} 
-            maxValue={100} 
-            showLabel={true}
-            instantFill={true} // Always use instantFill for static examples
-          />
-        </div>
-
-        <div>
-          <h3>50%</h3> 
-          <BrainProgress 
-            value={50} 
-            maxValue={100} 
-            showLabel={true}
-            instantFill={true} 
-          />
-        </div>
-
-        <div>
-          <h3>75%</h3>
-          <BrainProgress 
-            value={75} 
-            maxValue={100} 
-            showLabel={true}
-            instantFill={true}
-          />
-        </div>
-
-        <div>
-          <h3>100%</h3>
-          <BrainProgress 
-            value={100} 
-            maxValue={100} 
-            showLabel={true}
-            instantFill={true}
-          />
-        </div>
-      </div>
-
-      {/* Interactive Controls Demo */}
-      <div>
-        <h2>Interactive Controls</h2>
-        <div style={{ 
-          padding: '20px', 
-          marginBottom: '20px',
-          borderRadius: '8px', 
-          backgroundColor: '#f5f5f5', 
-          maxWidth: '800px' 
-        }}>
-          <div style={{ marginBottom: '20px' }}>
-            <h3>Animation Controls</h3>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
-              <button 
-                onClick={() => setIsLooping(!isLooping)}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: isLooping ? '#ff4500' : '#9932cc',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                {isLooping ? 'Stop Looping' : 'Start Loop Animation'}
-              </button>
-            </div>
-            
-            <div>
-              <label htmlFor="progress" style={{ display: 'block', marginBottom: '5px' }}>
-                Progress: {Math.round(progress)}%
-              </label>
-              <input
-                id="progress"
-                type="range"
-                min="0"
-                max="100"
-                value={progress}
-                onChange={(e) => setProgress(parseInt(e.target.value))}
-                style={{ width: '200px' }}
-                disabled={isLooping}
-              />
-            </div>
-          </div>
-          
-          <BrainProgress 
-            value={progress}
-            maxValue={100}
-            showLabel={true}
-            autoScale={true}
-            width="100%"
-            height="300px"
-            isPaused={isPausingAtEnd}
-            animationSpeed={speed}
-            // Pass the isReversed state to control animation direction
-            reverse={isReversed}
-            // Modified to ensure 100% always shows correctly
-            instantFill={!isLooping || progress === 100}
-            onAnimationComplete={() => console.log('Animation completed!')}
-            customColors={{
-              primary: '#ff4500',
-              secondary: '#9932cc'
-            }}
-          />
-          
-          {/* Status indicator */}
-          {isPausingAtEnd && (
-            <div style={{
-              marginTop: '10px',
-              padding: '5px',
-              backgroundColor: progress === 100 ? 'rgba(6, 201, 161, 0.2)' : 'rgba(255, 69, 0, 0.2)',
-              borderRadius: '4px',
-              textAlign: 'center',
-              fontWeight: 'bold'
-            }}>
-              {progress === 100 
-                ? 'Showing fully animated brain (100%)' 
-                : `Animation paused at ${progress}%`}
-            </div>
-          )}
-
-          {/* Add direction indicator */}
-          {isLooping && (
-            <div style={{
-              marginTop: '10px',
-              padding: '5px',
-              backgroundColor: 'rgba(0, 122, 252, 0.2)',
-              borderRadius: '4px',
-              textAlign: 'center',
-            }}>
-              Direction: {isReversed ? '⬇️ Decreasing' : '⬆️ Increasing'}
-            </div>
-          )}
-        </div>
-      </div>
+     
     </div>
   );
 };
