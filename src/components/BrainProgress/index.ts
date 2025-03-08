@@ -1,3 +1,3 @@
-export { default as BrainProgress } from './BrainProgress';
-export { default as AnimationCycleTest } from './AnimationCycleTest';
+export { default } from './BrainProgress';
+export { default as AnimationCycleExample } from './AnimationCycleExample';
 export * from './types';

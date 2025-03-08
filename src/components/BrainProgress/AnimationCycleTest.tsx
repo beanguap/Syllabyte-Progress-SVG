@@ -1,23 +1,23 @@
 import React, { useEffect } from 'react';
 import BrainProgress from './BrainProgress';
-import { useCycleAnimation } from '../../hooks/useCycleAnimation';
+import { useBrainAnimation } from '../../hooks/useBrainAnimation';
 import './BrainProgress.css';
 
 /**
  * AnimationCycleTest Component
  * 
- * Demonstrates a continuous fill-drain animation cycle for BrainProgress.
+ * Demonstrates a continuous fill-drain animation cycle for BrainProgress using GSAP.
  * The brain fills from 0% to 100%, pauses briefly, then drains back to 0%.
  */
 const AnimationCycleTest: React.FC = () => {
   // Detect test environment
   const isTestEnvironment = process.env.NODE_ENV === 'test';
   
-  // Use the custom hook for cycle animation with configured speed and pause duration
-  const { progress, isReversed, isPaused } = useCycleAnimation({
-    speed: 20, // Speed for smooth animation
+  // Use the GSAP-powered animation hook
+  const { progress, isReversed, isPaused } = useBrainAnimation({
     pauseAtPeakMs: 1000, // 1 second pause at peak
-    testMode: isTestEnvironment // Enable test mode in test environment
+    animationSpeed: 1,   // Control overall speed
+    testMode: isTestEnvironment
   });
   
   // Add debug logging to track state transitions
@@ -36,12 +36,11 @@ const AnimationCycleTest: React.FC = () => {
           showLabel={true}
           reverse={isReversed}
           isPaused={isPaused}
-          animationSpeed={0.3} // Keep animation smooth
+          animationSpeed={0.3} // Keep animation smooth within the SVG
           customColors={{
             primary: '#06c9a1',
             secondary: '#007afc'
           }}
-          // Add this debug prop to help diagnose state changes
           onAnimationComplete={() => console.log(`Animation cycle: ${isReversed ? 'Drain complete' : 'Fill complete'}`)}
         />
       </div>
