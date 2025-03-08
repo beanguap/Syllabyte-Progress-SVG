@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 // Use the updated component names
-import { BrainProgress, AnimationCycleExample } from './components/BrainProgress';
+import {  AnimationCycleExample } from './components/BrainProgress';
 
 const App: React.FC = () => {
   // Fixed speed value at 0.2
