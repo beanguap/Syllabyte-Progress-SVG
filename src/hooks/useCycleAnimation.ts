@@ -33,14 +33,12 @@ export function useCycleAnimation(options: CycleAnimationOptions): CycleAnimatio
   const directionRef = useRef<1 | -1>(1); // 1 for filling, -1 for draining
   const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
-  // Fixed: Add flag to track pending direction change
-  const pendingDirectionChangeRef = useRef<boolean>(false);
-  
   useEffect(() => {
     if (testMode && process.env.NODE_ENV === 'test') {
       return () => {};
     }
 
+    // Start timing for animation
     lastTimeRef.current = performance.now();
 
     function animate(time: number) {
@@ -69,30 +67,24 @@ export function useCycleAnimation(options: CycleAnimationOptions): CycleAnimatio
           clearTimeout(pauseTimeoutRef.current);
         }
         
-        // Fixed: Set flag to track this state transition
-        pendingDirectionChangeRef.current = true;
-        
-        // First pause the animation at peak
+        // Pause at peak first (CRITICAL)
         setIsPaused(true);
         
+        // CRITICAL FIX: Use a simple setTimeout chain without nested RAF
         pauseTimeoutRef.current = setTimeout(() => {
-          // First set internal direction to draining
+          // First set direction to reverse
           directionRef.current = -1;
           
-          // Update component state for reverse animation
+          // Then update React state for UI
           setIsReversed(true);
           
-          // KEY FIX: Use nested timeouts to ensure state updates are processed
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              // Now unpause to start draining animation
-              setIsPaused(false);
-              console.log("Starting drain animation");
-              
-              // Reset the flag
-              pendingDirectionChangeRef.current = false;
-            });
-          });
+          // Then schedule the unpause action
+          pauseTimeoutRef.current = setTimeout(() => {
+            // Finally unpause to start animation again
+            setIsPaused(false);
+            console.log("Starting drain animation");
+          }, 50); // Small delay to ensure state updates propagate
+          
         }, pauseAtPeakMs);
         
       } else if (valueRef.current <= 0.1 && directionRef.current < 0) {
@@ -100,18 +92,18 @@ export function useCycleAnimation(options: CycleAnimationOptions): CycleAnimatio
         valueRef.current = 0;
         setProgress(0);
         
-        // Reached 0%, reset for next fill cycle
-        pendingDirectionChangeRef.current = true;
+        // Pause briefly at 0% before reversing again
         setIsPaused(true);
         
         pauseTimeoutRef.current = setTimeout(() => {
+          // Set direction to forward
           directionRef.current = 1;
           setIsReversed(false);
           
-          requestAnimationFrame(() => {
+          // Unpause after a short delay
+          pauseTimeoutRef.current = setTimeout(() => {
             setIsPaused(false);
-            pendingDirectionChangeRef.current = false;
-          });
+          }, 50);
         }, 300); // Brief pause at 0%
       }
 
@@ -119,8 +111,10 @@ export function useCycleAnimation(options: CycleAnimationOptions): CycleAnimatio
       animFrameRef.current = requestAnimationFrame(animate);
     }
 
+    // Start animation
     animFrameRef.current = requestAnimationFrame(animate);
     
+    // Cleanup
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
