@@ -515,3 +515,27 @@
   background-color: rgba(255, 99, 71, 0.2);
   font-weight: bold;
 }
+
+/* Add this after the existing animation-test styles */
+
+/* Improve transition for paused to draining state */
+.animation-test .brain-progress-container[data-paused="false"][data-reverse="true"] .brain-path {
+  transition-delay: 0s !important; /* Ensure immediate transition after unpausing */
+  transition-duration: 0.4s !important; /* Quick transition for drain start */
+}
+
+/* Enhance the paused state at peak */
+.animation-test .brain-progress-container[data-paused="true"] {
+  opacity: 0.98; /* Very subtle visual indication of pause */
+}
+
+/* Add a gentle pulse effect during pause */
+@keyframes gentlePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.animation-test .brain-progress-container[data-paused="true"] .brain-path {
+  animation: gentlePulse 1.5s ease-in-out infinite !important;
+}
