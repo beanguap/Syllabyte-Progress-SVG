@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import BrainProgress from './BrainProgress';
 import { useCycleAnimation } from '../../hooks/useCycleAnimation';
 import './BrainProgress.css';
@@ -20,6 +20,11 @@ const AnimationCycleTest: React.FC = () => {
     testMode: isTestEnvironment // Enable test mode in test environment
   });
   
+  // Add debug logging to track state transitions
+  useEffect(() => {
+    console.log(`State updated - Progress: ${progress.toFixed(1)}%, Reversed: ${isReversed}, Paused: ${isPaused}`);
+  }, [progress, isReversed, isPaused]);
+  
   return (
     <div className="animation-test" data-reverse={isReversed ? "true" : "false"}>
       <h2>Continuous Fill/Drain Animation</h2>
@@ -36,6 +41,8 @@ const AnimationCycleTest: React.FC = () => {
             primary: '#06c9a1',
             secondary: '#007afc'
           }}
+          // Add this debug prop to help diagnose state changes
+          onAnimationComplete={() => console.log(`Animation cycle: ${isReversed ? 'Drain complete' : 'Fill complete'}`)}
         />
       </div>
       
@@ -44,10 +51,10 @@ const AnimationCycleTest: React.FC = () => {
         <p>Direction: {isReversed ? '⬇️ Draining' : '⬆️ Filling'}</p>
         <p>Status: {isPaused ? 'Paused at peak' : 'Animating'}</p>
         
-        {/* Debug info */}
+        {/* Enhanced debug info */}
         <p className="debug-info" style={{ fontSize: '0.8rem', color: '#666' }}>
           State: {isReversed ? 'reverse' : 'forward'}, 
-          {isPaused ? 'paused' : 'running'}
+          {isPaused ? ' paused' : ' running'}
           {progress >= 99 ? ', at peak' : ''}
           {progress <= 1 ? ', at bottom' : ''}
         </p>

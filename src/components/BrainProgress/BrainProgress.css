@@ -539,3 +539,217 @@
 .animation-test .brain-progress-container[data-paused="true"] .brain-path {
   animation: gentlePulse 1.5s ease-in-out infinite !important;
 }
+
+/* Improved cycle animation effects */
+
+/* Create distinct keyframes for the fill and drain stages */
+@keyframes cyclePathFill {
+  0% {
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length, 0);
+  }
+  40% {
+    fill-opacity: 0.5;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.5);
+  }
+  100% {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes cyclePathDrain {
+  0% {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+  60% {
+    fill-opacity: 0.4;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.6);
+  }
+  100% {
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length, 0);
+  }
+}
+
+/* Style for the pause state - hold all values at 100% */
+.animation-test .brain-progress-container[data-paused="true"][data-progress="100"] .brain-path {
+  fill-opacity: 1 !important;
+  stroke-dashoffset: 0 !important;
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+/* Enhanced pause state styling with subtle pulse */
+@keyframes pausePulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.01); filter: brightness(1.05); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+.animation-test .brain-progress-container[data-paused="true"] .brain-path {
+  animation: pausePulse 1.2s ease-in-out infinite !important;
+}
+
+/* Critical transition: Ensure smooth transition from pause at 100% to draining */
+.animation-test .brain-progress-container[data-paused="false"][data-reverse="true"] .brain-path {
+  transition-property: stroke-dashoffset, opacity, fill-opacity !important;
+  transition-duration: 0.6s !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition-delay: 0s !important;
+  animation: cyclePathDrain 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+/* Improved fill animation for smoother cycle */
+.animation-test .brain-progress-container[data-paused="false"][data-reverse="false"] .brain-path {
+  animation: cyclePathFill 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+/* Visual indicator for the cycle state */
+.animation-test .brain-progress-container {
+  position: relative;
+}
+
+/* Subtle glow for paused state at 100% */
+.animation-test .brain-progress-container[data-paused="true"][data-progress="100"]:before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(6, 201, 161, 0.2) 0%, rgba(0, 122, 252, 0.05) 70%, transparent 100%);
+  opacity: 0;
+  animation: glowPulse 1.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes glowPulse {
+  0% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+  100% { opacity: 0.3; }
+}
+
+/* Ensure smooth animation at the transition points */
+.animation-test .brain-path {
+  will-change: stroke-dashoffset, opacity, fill-opacity;
+}
+
+/* Add after line 582 in your file */
+
+/* Reset and consolidate all drain animations to ensure no conflicts */
+.animation-test .brain-progress-container[data-paused="false"][data-reverse="true"] .brain-path {
+  /* Override any previous transitions */
+  transition: none !important;
+  
+  /* Apply focused drain animation */
+  animation: cyclePathDrain 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  will-change: stroke-dashoffset, opacity, fill-opacity;
+}
+
+/* Enhance the pause-to-drain transition with better visual feedback */
+.animation-test .brain-progress-container[data-paused="true"][data-progress="100"] {
+  position: relative;
+}
+
+.animation-test .brain-progress-container[data-paused="true"][data-progress="100"]::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 15px rgba(6, 201, 161, 0.3);
+  opacity: 0;
+  animation: pauseGlow 1s ease-in-out infinite;
+}
+
+@keyframes pauseGlow {
+  0% { opacity: 0.2; }
+  50% { opacity: 0.5; }
+  100% { opacity: 0.2; }
+}
+
+/* Add a clear visual cue for direction change */
+.animation-test .brain-progress-container[data-reverse="true"] {
+  transition: transform 0.3s ease-out;
+}
+
+.animation-test .brain-progress-container[data-reverse="true"] .brain-path {
+  stroke-width: 3.8px !important; /* Subtle visual indicator of direction change */
+}
+
+/* Add after your existing styles (after line 680) */
+
+/* Fix for conflicting transition rules - ensure this has highest specificity */
+.animation-test .brain-progress-container[data-paused="false"][data-reverse="true"] .brain-path {
+  /* !important flags ensure these styles take precedence */
+  transition: none !important;
+  animation: cyclePathDrain 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  opacity: 1 !important; /* Ensure visible during transition */
+  will-change: stroke-dashoffset, opacity, fill-opacity;
+  stroke-width: 3.8px !important;
+}
+
+/* Improve data attribute selectors to ensure state is properly tracked */
+.animation-test .brain-progress-container[data-progress="100"][data-paused="true"] .brain-path {
+  fill-opacity: 1 !important;
+  stroke-dashoffset: 0 !important;
+  opacity: 1 !important;
+}
+
+/* Ensure animation direction is clearly visible */
+.animation-test .brain-progress-container[data-reverse="true"] .brain-path {
+  /* Additional styling to make reverse direction obvious */
+  filter: drop-shadow(0 0 2px rgba(255, 99, 71, 0.4)) !important;
+}
+
+/* Animation exit indicator to confirm state changes */
+.animation-test .brain-progress-container::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  opacity: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* State indicator visibility */
+.animation-test .brain-progress-container[data-paused="true"]::before {
+  opacity: 0.3;
+  box-shadow: 0 0 12px 2px rgba(6, 201, 161, 0.4);
+}
+
+/* Add after line 680 in your CSS file */
+
+/* Reset conflicting CSS rules and ensure smooth state transitions */
+.animation-test .brain-progress-container[data-paused="false"][data-reverse="true"] .brain-path {
+  /* Ensure the drain animation takes precedence over any other styles */
+  animation: cyclePathDrain 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  transition: none !important;
+  opacity: 1 !important;
+  stroke-width: 3.8px !important;
+}
+
+/* Adjust paused state to allow smooth transitions when unpausing */
+.animation-test .brain-progress-container[data-paused="true"] .brain-path {
+  /* Maintain animation-play-state as paused but prepare for smooth transition */
+  transition: opacity 0.2s ease-out, 
+              fill-opacity 0.2s ease-out,
+              stroke-dashoffset 0.2s ease-out !important;
+}
+
+/* Fix for data attribute state transitions */
+.animation-test .brain-progress-container[data-progress="100"][data-reverse="true"] .brain-path {
+  /* Specific fix for the 100% to drain transition */
+  animation-delay: 0s !important;
+  animation-duration: 0.8s !important;
+}

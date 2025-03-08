@@ -33,6 +33,9 @@ export function useCycleAnimation(options: CycleAnimationOptions): CycleAnimatio
   const directionRef = useRef<1 | -1>(1); // 1 for filling, -1 for draining
   const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
+  // Fixed: Add flag to track pending direction change
+  const pendingDirectionChangeRef = useRef<boolean>(false);
+  
   useEffect(() => {
     if (testMode && process.env.NODE_ENV === 'test') {
       return () => {};
@@ -56,22 +59,63 @@ export function useCycleAnimation(options: CycleAnimationOptions): CycleAnimatio
       setProgress(valueRef.current);
       
       // Check if we've reached a limit
-      if (valueRef.current >= 100 && directionRef.current > 0) {
-        // Reached 100%, pause before reversing
+      if (valueRef.current >= 99.9 && directionRef.current > 0) {
+        // Ensure we reach exactly 100% for visual clarity
+        valueRef.current = 100;
+        setProgress(100);
+        
+        // Clear any existing timeout
+        if (pauseTimeoutRef.current) {
+          clearTimeout(pauseTimeoutRef.current);
+        }
+        
+        // Fixed: Set flag to track this state transition
+        pendingDirectionChangeRef.current = true;
+        
+        // First pause the animation at peak
         setIsPaused(true);
+        
         pauseTimeoutRef.current = setTimeout(() => {
-          // After pause, reverse direction and continue
+          // First set internal direction to draining
           directionRef.current = -1;
+          
+          // Update component state for reverse animation
           setIsReversed(true);
-          setIsPaused(false);
+          
+          // KEY FIX: Use nested timeouts to ensure state updates are processed
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              // Now unpause to start draining animation
+              setIsPaused(false);
+              console.log("Starting drain animation");
+              
+              // Reset the flag
+              pendingDirectionChangeRef.current = false;
+            });
+          });
         }, pauseAtPeakMs);
-      } else if (valueRef.current <= 0 && directionRef.current < 0) {
-        // Reached 0%, reverse direction to start filling again
-        directionRef.current = 1;
-        setIsReversed(false);
+        
+      } else if (valueRef.current <= 0.1 && directionRef.current < 0) {
+        // Ensure we reach exactly 0% for visual clarity
+        valueRef.current = 0;
+        setProgress(0);
+        
+        // Reached 0%, reset for next fill cycle
+        pendingDirectionChangeRef.current = true;
+        setIsPaused(true);
+        
+        pauseTimeoutRef.current = setTimeout(() => {
+          directionRef.current = 1;
+          setIsReversed(false);
+          
+          requestAnimationFrame(() => {
+            setIsPaused(false);
+            pendingDirectionChangeRef.current = false;
+          });
+        }, 300); // Brief pause at 0%
       }
 
-      // Continue animation
+      // Continue animation loop
       animFrameRef.current = requestAnimationFrame(animate);
     }
 
