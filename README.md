@@ -21,33 +21,37 @@ Syllabyte-Progress-SVG leverages [Vite](https://vitejs.dev/) for modern developm
 
 ## Features
 
-- **Dynamic SVG Animation:** Brain logo progressively "unwinds" based on progress
-- **TypeScript Integration:** Full type safety and improved developer experience
-- **Responsive Design:** Adapts seamlessly to different screen sizes
-- **Flexible Progress Input:** Use direct percentage or value/maxValue calculation
-- **Custom Styling:** Configurable colors, dimensions, and animation speeds
-- **Accessibility:** ARIA compliant with proper labels and roles
-- **Performance Optimized:** GPU-accelerated animations and React optimizations
-- **Comprehensive Testing:** Unit and integration tests using Vitest
+- **Dynamic SVG Animation:** Brain logo progressively "unwinds" based on progress.
+- **TypeScript Integration:** Full type safety and improved developer experience.
+- **Responsive Design:** Adapts seamlessly to different screen sizes.
+- **Flexible Progress Input:** Use direct percentage or value/maxValue calculation.
+- **Custom Styling:** Configurable colors, dimensions, and animation speeds.
+- **Accessibility:** ARIA compliant with proper labels and roles.
+- **Performance Optimized:** GPU-accelerated animations and React optimizations.
+- **Comprehensive Testing:** Unit and integration tests using Vitest.
 
 ## Getting Started
 
-1. Install dependencies:
+### Installation
+
 ```bash
 npm install
 ```
 
-2. Start development server:
+### Development Server
+
 ```bash
 npm run dev
 ```
 
-3. Run tests:
+### Testing
+
 ```bash
 npm test
 ```
 
-4. Build for production:
+### Production Build
+
 ```bash
 npm run build
 npm run preview
@@ -55,44 +59,47 @@ npm run preview
 
 ## Project Structure
 
-    .gitignore
-    eslint.config.js
-    index.html
-    package.json
-    public/
-      vite.svg
-    README.md
-    src/
-      App.test.tsx
-      App.tsx
-      assets/
-        images/
-          Progress 0%.png
-          Progress 25%.png
-          Progress 50%.png
-          Progress 100%.png
-          ...
-        Syllabyte.svg
-      components/
-        BrainProgress.test.tsx
-        BrainProgress.tsx
-      docs/
-        SVG Brain Logo Animation.docx
-        SVG Brain Storyboard Unwind.pdf
-      main.tsx
-      styles/
-        BrainProgress.css
-      test/
-        setup.ts
-      vite-env.d.ts
-    tsconfig.app.json
-    tsconfig.json
-    tsconfig.node.json
-    vite.config.ts
+```
+syllabyte-progress-svg/
+├── .gitignore
+├── eslint.config.js
+├── index.html
+├── package.json
+├── public/
+│   └── vite.svg
+├── README.md
+├── src/
+│   ├── App.test.tsx
+│   ├── App.tsx
+│   ├── assets/
+│   │   ├── images/
+│   │   │   ├── Progress 0%.png
+│   │   │   ├── Progress 25%.png
+│   │   │   ├── Progress 50%.png
+│   │   │   ├── Progress 75%.png
+│   │   │   └── Progress 100%.png
+│   │   └── Syllabyte.svg
+│   ├── components/
+│   │   ├── BrainProgress.test.tsx
+│   │   └── BrainProgress.tsx
+│   ├── docs/
+│   │   ├── SVG Brain Logo Animation.docx
+│   │   └── SVG Brain Storyboard Unwind.pdf
+│   ├── main.tsx
+│   ├── styles/
+│   │   └── BrainProgress.css
+│   ├── test/
+│   │   └── setup.ts
+│   └── vite-env.d.ts
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+└── vite.config.ts
+```
 
 ## Usage
 
-Import and use the BrainProgress component:
+Import and use the **BrainProgress** component:
 
 ```tsx
 import { BrainProgress } from './components/BrainProgress';
@@ -115,7 +122,7 @@ function App() {
 
 ## Testing & Integration
 
-The project uses Vitest with React Testing Library:
+The project uses **Vitest** and **React Testing Library**:
 
 ```bash
 # Run all tests
@@ -129,20 +136,20 @@ npm run test:coverage
 ```
 
 Test files are located in:
-- `src/components/BrainProgress.test.tsx` - Unit tests
-- `src/App.test.tsx` - Integration tests
-- `src/test/setup.ts` - Test configuration
+- **Unit Tests:** `src/components/BrainProgress.test.tsx`
+- **Integration Tests:** `src/App.test.tsx`
+- **Test Setup:** `src/test/setup.ts`
 
 ## Performance Optimizations
 
-- **GPU Acceleration:** Uses CSS transform and opacity for smooth animations
-- **RAF Implementation:** Leverages requestAnimationFrame for optimal updates
-- **Memoization:** Optimizes calculations with useMemo
-- **Lazy Loading:** Support for React.lazy and Suspense
+- **GPU Acceleration:** Uses CSS transform and opacity for smooth animations.
+- **RAF Implementation:** Leverages `requestAnimationFrame` for optimal updates.
+- **Memoization:** Optimizes calculations with `useMemo`.
+- **Lazy Loading:** Supports `React.lazy` and `Suspense`.
 
 ## Customization
 
-Available props for BrainProgress:
+Available props for **BrainProgress**:
 
 ```typescript
 interface BrainProgressProps {
@@ -163,14 +170,14 @@ interface BrainProgressProps {
 
 ## Documentation
 
-Additional documentation in `src/docs/`:
-- `SVG Brain Logo Animation.docx` - Functional requirements
-- `SVG Brain Storyboard Unwind.pdf` - Animation storyboard
+Additional documentation available in `src/docs/`:
+- **Functional Requirements:** `SVG Brain Logo Animation.docx`
+- **Animation Storyboard:** `SVG Brain Storyboard Unwind.pdf`
 
-Developer:
+## Developer
 
-https://www.upwork.com/freelancers/~0172915a08bf077b1b?companyReference=1885205629154621004&mp_source=share
+[Pybeancoder on X](https://x.com/Pybeancoder)
 
-https://x.com/Pybeancoder
+## License
 
 MIT License. See [LICENSE](LICENSE) for details.

@@ -1,3 +1,30 @@
+/* Add these new styles at the top */
+.brain-progress-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 100px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  color: #666;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+}
+
+/* Remove unnecessary transitions for better performance */
+[data-paused="true"] .brain-path {
+  animation-play-state: paused !important;
+  transition: none !important;
+}
+
+/* Ensure visibility when paused */
+[data-paused="true"][data-progress="100"] .brain-path {
+  opacity: 1 !important;
+  fill-opacity: 1 !important;
+  transition: none !important;
+}
+
 /* Base container styling */
 .brain-progress-container {
   position: relative;
@@ -14,21 +41,35 @@
   overflow: visible; /* Allow paths to extend beyond SVG boundaries */
 }
 
-/* Brain path base styling */
+/* Brain path base styling - optimized for performance */
 .brain-path {
   opacity: 0; /* Start hidden */
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 4px;
-  fill: url(#brain-gradient); /* Enable gradient fill */
-  transform-origin: center;
-  /* Enhanced animation properties */
-  stroke-dasharray: 0;
-  stroke-dashoffset: 0;
-  /* Will be overridden by inline styles for animation */
-  transition-property: stroke-dashoffset, opacity, fill-opacity;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: stroke-dashoffset, opacity, fill-opacity;
+  fill-opacity: 0; /* Start with transparent fill */
+  stroke-width: 0; /* No stroke for better performance */
+  will-change: opacity, fill-opacity; /* Hint for browser optimization */
+}
+
+/* Animation Cycle Example Styles - simplified */
+.animation-cycle-example .brain-path {
+  opacity: 0;
+  fill-opacity: 0;
+}
+
+/* Style for the percentage label container */
+.brain-progress-label {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Stem path styling (path-1) - ensure it's visible first */
@@ -58,6 +99,14 @@
 
 [data-progress="100"] .brain-path {
   opacity: 1;
+  transition-duration: 0.8s;
+}
+
+/* Keep paths visible at 100% */
+[data-progress="100"] .brain-path {
+  opacity: 1;
+  fill-opacity: 1;
+  stroke-dashoffset: 0;
 }
 
 /* Add color stops for the paths to enhance visual quality */
@@ -75,24 +124,6 @@
   outline: 3px solid #007afc;
   outline-offset: 2px;
   border-radius: 5px;
-}
-
-/* Style for the percentage label container */
-.brain-progress-label {
-  position: absolute;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(255, 255, 255, 0.7);
-  border-radius: 50%;
-  width: 80px;
-  height: 80px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #333;
-  text-align: center;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
 }
 
 /* Style for the percentage label container (which is the <g> element in the SVG) */
@@ -131,11 +162,13 @@
 }
 
 /* Apply pulse animation on the label when fully complete */
+/* cspell:disable-next-line */
 .brain-progress-container[aria-valuenow="100"] .brain-progress-label {
   animation: pulse 1s ease-in-out;
 }
 
 /* Apply pulse animation on completion */
+/* cspell:disable-next-line */
 .brain-progress-container[aria-valuenow="100"] svg g {
   animation: pulse 1.5s ease-in-out infinite;
 }
@@ -155,10 +188,706 @@
 @keyframes fillIn {
   from {
     fill-opacity: 0;
-    stroke-dashoffset: var(--path-length);
+    stroke-dashoffset: var(--path-length, 0);
+  }
+  50% {
+    fill-opacity: 0.2;
   }
   to {
     fill-opacity: 1;
     stroke-dashoffset: 0;
   }
+}
+
+/* Add specific styling for reverse animation */
+@keyframes reversePathFill {
+  from {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    fill-opacity: 0.2;
+  }
+  to {
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length, 0);
+  }
+}
+
+/* Add data-attribute styling for reverse animation */
+[data-reverse="true"] .brain-path {
+  transition-timing-function: ease-out !important;
+}
+
+/* Improve transition timing for disappearing paths */
+.brain-path.disappearing {
+  animation: reversePathFill 1.2s ease-out forwards !important;
+  transition: opacity 0.8s ease-out, fill-opacity 1s ease-out !important;
+}
+
+/* Improve animation for path disappearance */
+@keyframes fadeOut {
+  0% { 
+    opacity: 1;
+    fill-opacity: 1; 
+    stroke-dashoffset: 0;
+  }
+  /* Slow start for smoother transition */
+  30% {
+    opacity: 1;
+    fill-opacity: 0.9;
+    stroke-dashoffset: 0;
+  }
+  100% { 
+    opacity: 0;
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length, 0);
+  }
+}
+
+/* Ensure smoother transitions when animating backwards */
+/* cspell:disable-next-line */
+.brain-progress-container[aria-valuenow="100"] .brain-path {
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 1.5s ease-out,
+              fill-opacity 1.8s ease-out;
+}
+
+/* Add persistence class to prevent flash during transitions */
+.brain-path.persistent {
+  transition: opacity 1.8s ease-out, 
+              fill-opacity 2s ease-out,
+              stroke-dashoffset 1.5s ease-out;
+}
+
+/* Make paths persistent at 100% */
+.brain-path.persistent {
+  opacity: 1 !important;
+  fill-opacity: 1 !important;
+  stroke-dashoffset: 0 !important;
+}
+
+/* Enhance reverse animations */
+[data-reverse="true"] .brain-path {
+  transition-timing-function: ease-out !important;
+}
+
+/* Enhanced reverse fill animation */
+@keyframes reversePathFill {
+  0% {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+  30% {
+    fill-opacity: 0.8;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.2);
+  }
+  70% {
+    fill-opacity: 0.3;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.7);
+  }
+  100% {
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length, 0);
+  }
+}
+
+/* Enhanced forward fill animation */
+@keyframes fillIn {
+  0% {
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length, 0);
+  }
+  50% {
+    fill-opacity: 0.4;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.5);
+  }
+  80% {
+    fill-opacity: 0.8;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.1);
+  }
+  100% {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Apply reverse animation when needed */
+[data-reverse="true"] .brain-path.disappearing {
+  animation: reversePathFill 0.8s ease-out forwards !important;
+}
+
+/* Make reverse transitions more pronounced */
+[data-reverse="true"] .brain-path {
+  transition-duration: 0.6s, 0.8s, 1s !important;
+}
+
+/* Add this new section for continuous animation cycle */
+.animation-test .brain-path {
+  /* Optimize transitions for continuous animation */
+  transition-timing-function: linear !important;
+}
+
+/* Ensure smoother transitions between fill and drain */
+.animation-test [data-reverse="true"] .brain-path {
+  transition-duration: 0.3s, 0.4s, 0.5s !important;
+}
+
+/* Prevent flashing during animation cycle */
+/* cspell:disable-next-line */
+.animation-test .brain-progress-container[aria-valuenow="100"] .brain-path,
+/* cspell:disable-next-line */
+.animation-test .brain-progress-container[aria-valuenow="0"] .brain-path {
+  transition-duration: 0.1s !important;
+}
+
+/* Make the pulse subtler for continuous animation */
+/* cspell:disable-next-line */
+.animation-test .brain-progress-container[aria-valuenow="100"] svg g {
+  animation: pulse 0.8s ease-in-out;
+  animation-iteration-count: 1; /* Only pulse once at 100% */
+}
+
+/* Additional style for animation test container */
+.animation-test {
+  background: linear-gradient(to bottom right, rgba(6, 201, 161, 0.1), rgba(0, 122, 252, 0.1));
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.animation-test h2 {
+  margin-top: 0;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Optimize existing animations for smoother cycle */
+@keyframes cycleFillIn {
+  0% {
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length, 0);
+  }
+  40% {
+    fill-opacity: 0.4;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.6);
+  }
+  70% {
+    fill-opacity: 0.7;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.3);
+  }
+  100% {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes cycleDrainOut {
+  0% {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+  40% {
+    fill-opacity: 0.6;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.4);
+  }
+  70% {
+    fill-opacity: 0.3;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.7);
+  }
+  100% {
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length, 0);
+  }
+}
+
+/* Apply cycle-specific animations */
+.animation-test .brain-path {
+  animation: none !important; /* Override default animations */
+}
+
+.animation-test [data-reverse="false"] .brain-path {
+  animation: cycleFillIn 0.5s linear forwards !important;
+}
+
+.animation-test [data-reverse="true"] .brain-path {
+  animation: cycleDrainOut 0.5s linear forwards !important;
+}
+
+/* Add these animation styles specifically for the animation cycle */
+
+/* Fine-tuned animation for the continuous cycle */
+@keyframes cycleProgress {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+/* Add styles to make transitions smoother during the cycle */
+.animation-test .brain-progress-container {
+  transition: all 0.3s ease-out;
+}
+
+/* Customize label appearance during cycle */
+.animation-test .brain-progress-label {
+  background-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Optimize animations specifically for the cycle component */
+.animation-test .brain-path {
+  transition-duration: 0.2s, 0.3s, 0.4s !important;
+  transition-timing-function: linear !important;
+}
+
+/* Add a subtle animation when direction changes */
+.animation-test[data-reverse="true"] .brain-progress-container {
+  animation: cycleProgress 0.4s ease-out;
+}
+
+/* Ensure paths don't flash between fill and drain */
+.animation-test .brain-path.persistent {
+  transition-duration: 0.1s !important;
+}
+
+/* Style the control indicators */
+.animation-test p {
+  margin: 5px 0;
+  padding: 5px 8px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+}
+
+/* Improve transition for paused to draining state */
+.animation-test .brain-progress-container[data-paused="false"][data-reverse="true"] .brain-path {
+  transition-delay: 0s !important; /* Ensure immediate transition after unpausing */
+  transition-duration: 0.4s !important; /* Quick transition for drain start */
+}
+
+/* Make sure pause state is correctly handled */
+.animation-test .brain-progress-container[data-paused="true"] {
+  opacity: 0.95; /* Subtle visual indication of pause */
+}
+
+/* Smooth transition from pause to drain */
+.animation-test .brain-progress-container[data-paused="true"] + div p:last-child {
+  font-weight: bold;
+  color: #06c9a1;
+}
+
+/* Debug info styling */
+.animation-test .debug-info {
+  background-color: rgba(0, 0, 0, 0.05);
+  font-family: monospace;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-top: 10px;
+  border-left: 3px solid #007afc;
+}
+
+/* Specific fix for pause-to-drain transition */
+.animation-test .brain-progress-container[data-paused="false"][data-reverse="true"] .brain-path {
+  transition: all 0.3s linear !important;
+}
+
+/* Ensure paused state at 100% is highly visible */
+.animation-test .brain-progress-container[data-paused="true"][data-progress="100"] .brain-path {
+  opacity: 1 !important;
+  fill-opacity: 1 !important;
+  stroke-dashoffset: 0 !important;
+}
+
+/* Helpful indicator for state changes */
+.animation-test .brain-progress-container[data-paused="true"] + div p:nth-child(3) {
+  background-color: rgba(6, 201, 161, 0.2);
+  font-weight: bold;
+}
+
+.animation-test .brain-progress-container[data-reverse="true"] + div p:nth-child(2) {
+  background-color: rgba(255, 99, 71, 0.2);
+  font-weight: bold;
+}
+
+/* Add this after the existing animation-test styles */
+
+/* Improve transition for paused to draining state */
+.animation-test .brain-progress-container[data-paused="false"][data-reverse="true"] .brain-path {
+  transition-delay: 0s !important; /* Ensure immediate transition after unpausing */
+  transition-duration: 0.4s !important; /* Quick transition for drain start */
+}
+
+/* Enhance the paused state at peak */
+.animation-test .brain-progress-container[data-paused="true"] {
+  opacity: 0.98; /* Very subtle visual indication of pause */
+}
+
+/* Add a gentle pulse effect during pause */
+@keyframes gentlePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.animation-test .brain-progress-container[data-paused="true"] .brain-path {
+  animation: gentlePulse 1.5s ease-in-out infinite !important;
+}
+
+/* Improved cycle animation effects */
+
+/* Create distinct keyframes for the fill and drain stages */
+@keyframes cyclePathFill {
+  0% {
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length, 0);
+  }
+  40% {
+    fill-opacity: 0.5;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.5);
+  }
+  100% {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes cyclePathDrain {
+  0% {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+  60% {
+    fill-opacity: 0.4;
+    stroke-dashoffset: calc(var(--path-length, 0) * 0.6);
+  }
+  100% {
+    fill-opacity: 0;
+    stroke-dashoffset: var(--path-length, 0);
+  }
+}
+
+/* Style for the pause state - hold all values at 100% */
+.animation-test .brain-progress-container[data-paused="true"][data-progress="100"] .brain-path {
+  fill-opacity: 1 !important;
+  stroke-dashoffset: 0 !important;
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+/* Enhanced pause state styling with subtle pulse */
+@keyframes pausePulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.01); filter: brightness(1.05); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+.animation-test .brain-progress-container[data-paused="true"] .brain-path {
+  animation: pausePulse 1.2s ease-in-out infinite !important;
+}
+
+/* Critical transition: Ensure smooth transition from pause at 100% to draining */
+.animation-test .brain-progress-container[data-paused="false"][data-reverse="true"] .brain-path {
+  transition-property: stroke-dashoffset, opacity, fill-opacity !important;
+  transition-duration: 0.6s !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition-delay: 0s !important;
+  animation: cyclePathDrain 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+/* Improved fill animation for smoother cycle */
+.animation-test .brain-progress-container[data-paused="false"][data-reverse="false"] .brain-path {
+  animation: cyclePathFill 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+/* Visual indicator for the cycle state */
+.animation-test .brain-progress-container {
+  position: relative;
+}
+
+/* Subtle glow for paused state at 100% */
+.animation-test .brain-progress-container[data-paused="true"][data-progress="100"]:before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(6, 201, 161, 0.2) 0%, rgba(0, 122, 252, 0.05) 70%, transparent 100%);
+  opacity: 0;
+  animation: glowPulse 1.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes glowPulse {
+  0% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+  100% { opacity: 0.3; }
+}
+
+/* Ensure smooth animation at the transition points */
+.animation-test .brain-path {
+  will-change: stroke-dashoffset, opacity, fill-opacity;
+}
+
+/* Add after line 582 in your file */
+
+/* Reset and consolidate all drain animations to ensure no conflicts */
+.animation-test .brain-progress-container[data-paused="false"][data-reverse="true"] .brain-path {
+  /* Override any previous transitions */
+  transition: none !important;
+  
+  /* Apply focused drain animation */
+  animation: cyclePathDrain 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  will-change: stroke-dashoffset, opacity, fill-opacity;
+}
+
+/* Enhance the pause-to-drain transition with better visual feedback */
+.animation-test .brain-progress-container[data-paused="true"][data-progress="100"] {
+  position: relative;
+}
+
+.animation-test .brain-progress-container[data-paused="true"][data-progress="100"]::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 15px rgba(6, 201, 161, 0.3);
+  opacity: 0;
+  animation: pauseGlow 1s ease-in-out infinite;
+}
+
+@keyframes pauseGlow {
+  0% { opacity: 0.2; }
+  50% { opacity: 0.5; }
+  100% { opacity: 0.2; }
+}
+
+/* Add a clear visual cue for direction change */
+.animation-test .brain-progress-container[data-reverse="true"] {
+  transition: transform 0.3s ease-out;
+}
+
+.animation-test .brain-progress-container[data-reverse="true"] .brain-path {
+  stroke-width: 3.8px !important; /* Subtle visual indicator of direction change */
+}
+
+/* Add after your existing styles (after line 680) */
+
+/* Fix for conflicting transition rules - ensure this has highest specificity */
+.animation-test .brain-progress-container[data-paused="false"][data-reverse="true"] .brain-path {
+  /* !important flags ensure these styles take precedence */
+  transition: none !important;
+  animation: cyclePathDrain 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  opacity: 1 !important; /* Ensure visible during transition */
+  will-change: stroke-dashoffset, opacity, fill-opacity;
+  stroke-width: 3.8px !important;
+}
+
+/* Improve data attribute selectors to ensure state is properly tracked */
+.animation-test .brain-progress-container[data-progress="100"][data-paused="true"] .brain-path {
+  fill-opacity: 1 !important;
+  stroke-dashoffset: 0 !important;
+  opacity: 1 !important;
+}
+
+/* Ensure animation direction is clearly visible */
+.animation-test .brain-progress-container[data-reverse="true"] .brain-path {
+  /* Additional styling to make reverse direction obvious */
+  filter: drop-shadow(0 0 2px rgba(255, 99, 71, 0.4)) !important;
+}
+
+/* Animation exit indicator to confirm state changes */
+.animation-test .brain-progress-container::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  opacity: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* State indicator visibility */
+.animation-test .brain-progress-container[data-paused="true"]::before {
+  opacity: 0.3;
+  box-shadow: 0 0 12px 2px rgba(6, 201, 161, 0.4);
+}
+
+/* Add after line 680 in your CSS file */
+
+/* Reset conflicting CSS rules and ensure smooth state transitions */
+.animation-test .brain-progress-container[data-paused="false"][data-reverse="true"] .brain-path {
+  /* Ensure the drain animation takes precedence over any other styles */
+  animation: cyclePathDrain 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  transition: none !important;
+  opacity: 1 !important;
+  stroke-width: 3.8px !important;
+}
+
+/* Adjust paused state to allow smooth transitions when unpausing */
+.animation-test .brain-progress-container[data-paused="true"] .brain-path {
+  /* Maintain animation-play-state as paused but prepare for smooth transition */
+  transition: opacity 0.2s ease-out, 
+              fill-opacity 0.2s ease-out,
+              stroke-dashoffset 0.2s ease-out !important;
+}
+
+/* Fix for data attribute state transitions */
+.animation-test .brain-progress-container[data-progress="100"][data-reverse="true"] .brain-path {
+  /* Specific fix for the 100% to drain transition */
+  animation-delay: 0s !important;
+  animation-duration: 0.8s !important;
+}
+
+/* Add these rules after line 680 in your CSS file */
+
+/* CRITICAL FIX: Reset animation state when transitioning from paused at 100% to draining */
+.animation-test .brain-progress-container[data-progress="100"][data-paused="false"][data-reverse="true"] .brain-path {
+  /* Force animation to immediately begin draining from full state */
+  animation: cyclePathDrain 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  transition: none !important;
+  opacity: 1 !important;
+  fill-opacity: 1 !important;
+  stroke-dashoffset: 0 !important;
+  will-change: stroke-dashoffset, opacity, fill-opacity;
+}
+
+/* Override any conflicting rules to ensure drain animation runs */
+.animation-test .brain-progress-container[data-reverse="true"] .brain-path {
+  animation-play-state: running !important;
+  animation-delay: 0s !important;
+  stroke-width: 3.8px !important;
+}
+
+/* Improve transition from pause state */
+.animation-test .brain-progress-container[data-paused="true"] .brain-path {
+  /* Use transition-delay instead of animation-play-state for smoother unpause */
+  transition-delay: 0s !important;
+  transition-duration: 0.2s !important;
+}
+
+/* Add these rules at the end of your file to override any conflicting rules */
+
+/* GSAP-specific animation enhancements */
+.animation-test .brain-progress-container {
+  position: relative;
+  transition: transform 0.3s ease-out;
+}
+
+/* Base styling for all paths */
+.animation-test .brain-path {
+  will-change: stroke-dashoffset, opacity, fill-opacity;
+}
+
+/* Ensure 100% visibility when paused */
+.animation-test .brain-progress-container[data-paused="true"][data-progress="100"] .brain-path {
+  opacity: 1 !important;
+  fill-opacity: 1 !important;
+  stroke-dashoffset: 0 !important;
+}
+
+/* Pulse animation during pause */
+@keyframes gentlePulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.01); filter: brightness(1.05); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+.animation-test .brain-progress-container[data-paused="true"][data-progress="100"] .brain-path {
+  animation: gentlePulse 1.5s ease-in-out infinite;
+}
+
+/* Styling for drain animation */
+.animation-test .brain-progress-container[data-reverse="true"] .brain-path {
+  stroke-width: 3.8px;
+  filter: drop-shadow(0 0 2px rgba(255, 99, 71, 0.4));
+}
+
+/* Status indicators */
+.animation-test p:nth-child(2) {
+  transition: background-color 0.3s ease;
+}
+
+.animation-test p:nth-child(3) {
+  transition: background-color 0.3s ease;
+}
+
+/* Direction indicator styling */
+.animation-test .brain-progress-container[data-reverse="true"] + div p:nth-child(2) {
+  background-color: rgba(255, 99, 71, 0.2);
+  font-weight: bold;
+}
+
+/* Paused indicator styling */
+.animation-test .brain-progress-container[data-paused="true"] + div p:nth-child(3) {
+  background-color: rgba(6, 201, 161, 0.2);
+  font-weight: bold;
+}
+
+/* Ensure GSAP animations override any CSS transitions */
+.animation-test .brain-path {
+  transition: none !important;
+}
+
+/* Animation Cycle Example Styles */
+.animation-cycle-example {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  margin: 20px auto;
+  background-color: rgba(240, 240, 240, 0.5);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+}
+
+.animation-cycle-example .brain-path {
+  stroke-width: 5px;
+  filter: drop-shadow(0 0 2px rgba(6, 201, 161, 0.3));
+  transition: filter 0.3s ease;
+}
+
+/* Add a subtle glow effect when paths are active */
+.animation-cycle-example[data-animating="true"] .brain-path {
+  filter: drop-shadow(0 0 4px rgba(6, 201, 161, 0.6));
+}
+
+/* Add a pulse effect when animation is paused at 100% */
+@keyframes pausePulse {
+  0% { filter: drop-shadow(0 0 3px rgba(6, 201, 161, 0.5)); }
+  50% { filter: drop-shadow(0 0 8px rgba(0, 122, 252, 0.7)); }
+  100% { filter: drop-shadow(0 0 3px rgba(6, 201, 161, 0.5)); }
+}
+
+.animation-cycle-example[data-paused="true"] .brain-path[style*="opacity: 1"] {
+  animation: pausePulse 2s ease-in-out infinite;
+}
+
+.animation-controls {
+  position: relative;
+  margin-top: 20px;
+  text-align: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #333;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.animation-controls p {
+  margin: 5px 0;
+  font-size: 16px;
+  font-weight: 500;
 }
