@@ -33,7 +33,6 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
   
   // Convert raw progress to stepped progress (0, 25, 50, 75, 100)
   const steppedProgress = useMemo(() => {
-    if (rawProgress >= 100) return 100;
     if (rawProgress >= 75) return 75;
     if (rawProgress >= 50) return 50;
     if (rawProgress >= 25) return 25;
@@ -203,7 +202,7 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
     const allPaths = Array.from(svgRef.current.querySelectorAll('.brain-path'));
     
     // Check if we're at 100% progress - explicitly check with a strict equality check
-    const isFullProgress = steppedProgress === 100 ? true : false;
+    const isFullProgress = rawProgress >= 100;
     
     // Handle instant fill case
     if (instantFill || isFullProgress) {
@@ -235,8 +234,8 @@ const BrainProgress: React.FC<BrainProgressProps> = ({
     const tl = gsap.timeline({
       paused: isPaused,
       onComplete: () => {
-        // Check if we're at 100% using the same explicit check
-        if (steppedProgress === 100 ? true : false) {
+        // Check if we're at 100% using the proper condition
+        if (rawProgress >= 100) {
           if (onAnimationComplete) {
             onAnimationComplete();
           }
